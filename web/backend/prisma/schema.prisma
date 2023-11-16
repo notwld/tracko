@@ -6,6 +6,48 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
+
+enum UserRole {
+  SCRUM_MASTER
+  PRODUCT_OWNER
+  TEAM_MEMBER
+}
+
+
+model User {
+  id       Int    @id @default(autoincrement())
+  username String
+  email    String @unique
+  password String
+  role     UserRole
+
+  ProductBacklog ProductBacklog[]
+  PokerPlanning  PokerPlanning[]
+}
+
+model ProductBacklog {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+
+  // Relationships
+  ownerId       Int // Foreign key referencing User
+  owner         User            @relation(fields: [ownerId], references: [id])
+  PokerPlanning PokerPlanning[]
+}
+
+model PokerPlanning {
+  id               Int @id @default(autoincrement())
+  complexity       Int
+  functionalPoints Int
+
+  // Relationships
+  backlogId      Int // Foreign key referencing ProductBacklog
+  backlog        ProductBacklog @relation(fields: [backlogId], references: [id])
+  assignedUserId Int // Foreign key referencing User
+  assignedUser   User           @relation(fields: [assignedUserId], references: [id])
+}
+

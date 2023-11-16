@@ -8,13 +8,10 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: tracko
-      MYSQL_USER: root
       MYSQL_PASSWORD: root
     ports:
       - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
-
+    
   backend:
     build: ./backend
     image: backend-image:latest
@@ -23,6 +20,10 @@ services:
       - "3000:3000"
     depends_on:
       - db
+    volumes:
+      - ./backend/index.js:/app/backend/index.js
+      - ./backend/package.json:/app/backend/package.json
+      - ./backend/prisma/schema.prisma:/app/backend/prisma/schema.prisma
 
   frontend:
     build: ./frontend
@@ -32,5 +33,9 @@ services:
       - "5173:5173"
     depends_on:
       - backend
+    volumes:
+      - ./frontend/src:/app/frontend/src
+      - ./frontend/public:/app/frontend/public
+      - ./frontend/package.json:/app/frontend/package.json
 
 

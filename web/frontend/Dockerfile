@@ -4,8 +4,8 @@ WORKDIR /app/frontend
 
 COPY package*.json ./
 
-RUN pnpm install
+RUN npm install
 
 COPY . .
 
-CMD ["pnpm", "run", "dev"]
+CMD ["npm", "run", "dev"]
