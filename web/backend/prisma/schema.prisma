@@ -10,44 +10,244 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum UserRole {
-  SCRUM_MASTER
-  PRODUCT_OWNER
-  TEAM_MEMBER
-}
-
+// schema.prisma
 
 model User {
-  id       Int    @id @default(autoincrement())
-  username String
-  email    String @unique
-  password String
-  role     UserRole
+  id               Int               @id @default(autoincrement())
+  username         String
+  email            String
+  role             UserRole          @relation(fields: [userRoleId], references: [id])
+  functionalPoints FunctionalPoint[]
+  teamMember       TeamMember?
+  productOwner     ProductOwner?
+  scrumMaster      ScrumMaster?
+  messages         Message[]
+  taskAssignments  TaskAssignment[]
+  userRoleId       Int
+  Attendee         Attendee[]
+}
 
-  ProductBacklog ProductBacklog[]
-  PokerPlanning  PokerPlanning[]
+model UserRole {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  users User[]
+}
+
+model TeamMember {
+  id               Int               @id @default(autoincrement())
+  userId           Int               @unique
+  user             User              @relation(fields: [userId], references: [id])
+  functionalPoints FunctionalPoint[]
+  estimations      Estimation[]
+  tasks            Task[]
+  taskAssignments  TaskAssignment[]
+}
+
+model ProductOwner {
+  id          Int          @id @default(autoincrement())
+  userId      Int          @unique
+  user        User         @relation(fields: [userId], references: [id])
+  products    Product[]
+  sprintPlans SprintPlan[]
+}
+
+model ScrumMaster {
+  id      Int      @id @default(autoincrement())
+  userId  Int      @unique
+  user    User     @relation(fields: [userId], references: [id])
+  sprints Sprint[]
+}
+
+model FunctionalPoint {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  value              Int
+  description        String
+  inputs             Input[]
+  outputs            Output[]
+  inquiries          Inquiry[]
+  internalFiles      InternalFile[]
+  externalInterfaces ExternalInterface[]
+  users              User[]
+  teamMembers        TeamMember[]
+  products           Product[]
+}
+
+model Input {
+  id                Int             @id @default(autoincrement())
+  name              String
+  functionalPointId Int
+  functionalPoint   FunctionalPoint @relation(fields: [functionalPointId], references: [id])
+}
+
+model Output {
+  id                Int             @id @default(autoincrement())
+  name              String
+  functionalPointId Int
+  functionalPoint   FunctionalPoint @relation(fields: [functionalPointId], references: [id])
+}
+
+model Inquiry {
+  id                Int             @id @default(autoincrement())
+  name              String
+  functionalPointId Int
+  functionalPoint   FunctionalPoint @relation(fields: [functionalPointId], references: [id])
+}
+
+model InternalFile {
+  id                Int             @id @default(autoincrement())
+  name              String
+  functionalPointId Int
+  functionalPoint   FunctionalPoint @relation(fields: [functionalPointId], references: [id])
+}
+
+model ExternalInterface {
+  id                Int             @id @default(autoincrement())
+  name              String
+  functionalPointId Int
+  functionalPoint   FunctionalPoint @relation(fields: [functionalPointId], references: [id])
+}
+
+model Product {
+  id               Int               @id @default(autoincrement())
+  name             String
+  description      String
+  productBacklogs  ProductBacklog[]
+  stories          Story[]
+  functionalPoints FunctionalPoint[]
+  sprints          Sprint[]
+  ProductOwner     ProductOwner?     @relation(fields: [productOwnerId], references: [id])
+  productOwnerId   Int?
+  Session          Session[]
 }
 
 model ProductBacklog {
-  id          Int    @id @default(autoincrement())
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  productId    Int
+  product      Product       @relation(fields: [productId], references: [id])
+  backlogItems BacklogItem[]
+}
+
+model BacklogItem {
+  id               Int            @id @default(autoincrement())
+  title            String
+  description      String
+  size             Int
+  productBacklogId Int
+  productBacklog   ProductBacklog @relation(fields: [productBacklogId], references: [id])
+  story            Story          @relation(fields: [storyId], references: [id])
+  storyId          Int
+}
+
+model Story {
+  id          Int           @id @default(autoincrement())
   title       String
   description String
-
-  // Relationships
-  ownerId       Int // Foreign key referencing User
-  owner         User            @relation(fields: [ownerId], references: [id])
-  PokerPlanning PokerPlanning[]
+  size        Int
+  productId   Int
+  product     Product       @relation(fields: [productId], references: [id])
+  estimations Estimation[]
+  tasks       Task[]
+  BacklogItem BacklogItem[]
 }
 
-model PokerPlanning {
-  id               Int @id @default(autoincrement())
-  complexity       Int
-  functionalPoints Int
-
-  // Relationships
-  backlogId      Int // Foreign key referencing ProductBacklog
-  backlog        ProductBacklog @relation(fields: [backlogId], references: [id])
-  assignedUserId Int // Foreign key referencing User
-  assignedUser   User           @relation(fields: [assignedUserId], references: [id])
+model Task {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String
+  statusId        Int
+  storyId         Int
+  teamMemberId    Int
+  taskAssignments TaskAssignment[]
+  status          Status           @relation(fields: [statusId], references: [id])
+  story           Story            @relation(fields: [storyId], references: [id])
+  teamMember      TeamMember       @relation(fields: [teamMemberId], references: [id])
+  SprintPlan      SprintPlan?      @relation(fields: [sprintPlanId], references: [id])
+  sprintPlanId    Int?
 }
 
+model TaskAssignment {
+  id             Int        @id @default(autoincrement())
+  taskId         Int
+  teamMemberId   Int
+  assignmentDate DateTime
+  task           Task       @relation(fields: [taskId], references: [id])
+  teamMember     TeamMember @relation(fields: [teamMemberId], references: [id])
+  User           User?      @relation(fields: [userId], references: [id])
+  userId         Int?
+}
+
+model SprintPlan {
+  id             Int          @id @default(autoincrement())
+  sprintId       Int          @unique
+  productOwnerId Int
+  planDate       DateTime
+  productOwner   ProductOwner @relation(fields: [productOwnerId], references: [id])
+  sprint         Sprint       @relation(fields: [sprintId], references: [id])
+  tasks          Task[]
+}
+
+model Status {
+  id    Int    @id @default(autoincrement())
+  name  String
+  tasks Task[]
+}
+
+model Estimation {
+  id           Int        @id @default(autoincrement())
+  storyId      Int        @unique
+  teamMemberId Int
+  size         Int
+  story        Story      @relation(fields: [storyId], references: [id])
+  teamMember   TeamMember @relation(fields: [teamMemberId], references: [id])
+}
+
+model Sprint {
+  id            Int          @id @default(autoincrement())
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  productId     Int
+  product       Product      @relation(fields: [productId], references: [id])
+  sprintPlan    SprintPlan?
+  ScrumMaster   ScrumMaster? @relation(fields: [scrumMasterId], references: [id])
+  scrumMasterId Int?
+}
+
+model Session {
+  id        Int        @id @default(autoincrement())
+  title     String
+  date      DateTime
+  productId Int
+  product   Product    @relation(fields: [productId], references: [id])
+  attendees Attendee[]
+  Message   Message[]
+}
+
+model Attendee {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  sessionId Int
+  user      User    @relation(fields: [userId], references: [id])
+  session   Session @relation(fields: [sessionId], references: [id])
+}
+
+model MessageType {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  messages Message[]
+}
+
+model Message {
+  id          Int         @id @default(autoincrement())
+  content     String
+  messageId   Int
+  messageType MessageType @relation(fields: [messageId], references: [id])
+  userId      Int
+  sessionId   Int
+  createdAt   DateTime
+  user        User        @relation(fields: [userId], references: [id])
+  session     Session     @relation(fields: [sessionId], references: [id])
+}
