@@ -30,7 +30,7 @@ export default function Nav() {
                             </ul>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link disabled" aria-disabled="true">Disabled</a>
+                            <a className="nav-link">Muhamm..</a>
                         </li>
                     </ul>
 

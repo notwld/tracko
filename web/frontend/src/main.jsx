@@ -5,6 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import {createBrowserRouter,RouterProvider} from 'react-router-dom'
+import ProductBaclogs from './pages/ProductBaclogs.jsx'
 
 const routes = createBrowserRouter([
   {
@@ -14,7 +15,7 @@ const routes = createBrowserRouter([
     children:[
       {
         path: "/",
-        element: <div className='container '>Home</div>,
+        element: <ProductBaclogs />
       }
     ]
   }
