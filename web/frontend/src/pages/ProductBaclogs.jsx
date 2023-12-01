@@ -1,4 +1,3 @@
-import React from 'react'
 import { useState } from 'react'
 import "../stylesheets/product_backlog.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -28,7 +27,7 @@ export default function ProductBaclogs() {
     })
 
     const handleOnBlur = () => {
-        if (backlogData.title != "") {
+        if (backlogData.title != "None") {
             fakeData.push({ ...backlogData })
         }
         console.table(fakeData)
@@ -42,13 +41,22 @@ export default function ProductBaclogs() {
     }
 
     const handleMenuShow = (item)=>{
-        setShow(!show)
-
+        setShow(true)
+        setMenuData({
+            title: item.title,
+            progress: item.progress,
+            assignedTo: item.assignedTo
+        })
 
     }
 
     const handleSelection = (item) => {
-        if(item.title)
+        if(Array(selectBacklog).includes(item)==false) {
+            setSelectBacklog([...selectBacklog,item])
+        }
+        else{
+            setSelectBacklog(...selectBacklog,Array(selectBacklog).filter((each) => each!=item))
+        }
     }
     return (
         <div className='container my-0 px-0 ps-4' >
@@ -122,11 +130,12 @@ export default function ProductBaclogs() {
                                     onBlur={handleOnBlur}
                                     onChange={(e) => setBacklogData({ title: e.target.value })}
                                     aria-label="Issue details"
+                                    autoFocus
                                 />
 
                             </div>
                         ) : <span className='py-4 px-3' id='create_issue' onClick={() => { setShowInputBox(!false) }}>
-                            + Create Issue
+                            + Create Backlog
                         </span>}
 
                 </div>
@@ -135,13 +144,13 @@ export default function ProductBaclogs() {
                         <div className="header my-3 d-flex justify-content-between align-items-start">
                             <div>
                                 <h6>
-                                    Team in Space/BREW-1
+                                    {menuData.title}
                                 </h6>
                                 <div>
                                     <span>
                                         Do the assignment
                                     </span>
-                                    <span className="ms-3 badge text-bg-secondary">In Progress</span>
+                                    <span className="ms-3 badge text-bg-secondary">{menuData.progress}</span>
                                 </div>
 
                             </div>
@@ -231,7 +240,8 @@ export default function ProductBaclogs() {
                                     </div>
                                     <div className="col">
                                         <span>
-                                            None
+                                        {menuData.assignedTo?menuData.assignedTo:"-"}
+
                                         </span>
                                     </div>
                                 </div>
