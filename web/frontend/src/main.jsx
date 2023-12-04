@@ -5,7 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import {createBrowserRouter,RouterProvider} from 'react-router-dom'
-import ProductBaclogs from './pages/ProductBaclogs.jsx'
+import ProductBacklogs from './pages/ProductBacklogs.jsx'
+import Home from './pages/Home.jsx'
+import Board from './pages/Board.jsx'
 
 const routes = createBrowserRouter([
   {
@@ -15,7 +17,23 @@ const routes = createBrowserRouter([
     children:[
       {
         path: "/",
-        element: <ProductBaclogs />
+        element: <Home />
+      },
+      {
+        path: "/project",
+        element: <Home />
+      },
+      {
+        path: "/backlogs",
+        element: <ProductBacklogs />
+      },
+      {
+        path: "/board",
+        element: <Board />
+      },
+      {
+        path: "/poker-planning",
+        element: <Board />
       }
     ]
   }

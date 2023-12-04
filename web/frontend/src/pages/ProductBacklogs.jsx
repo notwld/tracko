@@ -2,45 +2,84 @@ import { useState } from 'react'
 import "../stylesheets/product_backlog.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboard } from "@fortawesome/free-regular-svg-icons"
+import { faPencil } from '@fortawesome/free-solid-svg-icons'
 const fakeData = [{
     title: "To the space",
     progress: "In Progress",
-    assignedTo: "Muhammad Waleed"
+    assignedTo: "Muhammad Waleed",
+    description: "None",
+    sprint: "None",
+    storyPointEstimate: "None",
+    createdAt: "None",
+    updatedAt: "None",
+    reporter: "None",
+    assignee: "None"
 }]
 
 export default function ProductBaclogs() {
 
 
     const [show, setShow] = useState(false)
-    const [showInputBox, setShowInputBox] = useState(false)
     const [backlogData, setBacklogData] = useState({
         title: "None",
         progress: "None",
-        assignedTo: "None"
+        assignedTo: "None",
+        description: "None",
+        sprint: "None",
+        storyPointEstimate: "None",
+        createdAt: "None",
+        updatedAt: "None",
+        reporter: "None",
+        assignee: "None"
     })
 
-    const [selectBacklog,setSelectBacklog] = useState([])
+    const [selectBacklog, setSelectBacklog] = useState([])
+    const [inputEvent, setInputEvent] = useState({ 
+        backlogInput: false, 
+        backlogDescriptionInput: false,
+     })
     const [menuData, setMenuData] = useState({
         title: "None",
         progress: "None",
-        assignedTo: "None"
+        assignedTo: "None",
+        description: "None",
+        sprint: "None",
+        storyPointEstimate: "None",
+        createdAt: "None",
+        updatedAt: "None",
+        reporter: "None",
+        assignee: "None"
     })
 
-    const handleOnBlur = () => {
-        if (backlogData.title != "None") {
-            fakeData.push({ ...backlogData })
+    const handleOnBlur = (mode) => {
+        if(mode=="backlog"){
+            if (backlogData.title != "None" && backlogData.title.length > 4) {
+                fakeData.push({ ...backlogData })
+            }
+            setBacklogData({
+                title: "None",
+                progress: "None",
+                assignedTo: "None"
+            })
+            setInputEvent((prevInputEvent) => ({
+                ...prevInputEvent,
+                backlogInput: false,
+            }));
         }
-        console.table(fakeData)
-        setBacklogData({
-            title: "None",
-            progress: "None",
-            assignedTo: "None"
-        })
-        setShowInputBox(false)
+        else if(mode=="description"){
+            setInputEvent((prevInputEvent) => ({
+                ...prevInputEvent,
+                backlogDescriptionInput: false,
+            }));
+        }else{
+            return
+        }
 
+        // setInputEvent((prev) => [{ id: 1, backlogInput: false }]);
+        // console.log(inputEvent)
     }
 
-    const handleMenuShow = (item)=>{
+    const handleMenuShow = (item) => {
         setShow(true)
         setMenuData({
             title: item.title,
@@ -49,13 +88,18 @@ export default function ProductBaclogs() {
         })
 
     }
-
+    const handlePencilIconClick = () => {
+        setInputEvent((prevInputEvent) => ({
+            ...prevInputEvent,
+            backlogDescriptionInput: true
+        }));
+    };
     const handleSelection = (item) => {
-        if(Array(selectBacklog).includes(item)==false) {
-            setSelectBacklog([...selectBacklog,item])
+        if (Array(selectBacklog).includes(item) == false) {
+            setSelectBacklog([...selectBacklog, item])
         }
-        else{
-            setSelectBacklog(...selectBacklog,Array(selectBacklog).filter((each) => each!=item))
+        else {
+            setSelectBacklog(...selectBacklog, Array(selectBacklog).filter((each) => each != item))
         }
     }
     return (
@@ -81,9 +125,12 @@ export default function ProductBaclogs() {
                                     <h1 className="display-5">
                                         Backlogs
                                     </h1>
-                                    <form className="d-flex mt-3" role="search">
-                                        <input className="form-control me-2" type="search" placeholder="Search &#128270;" aria-label="Search" />
-                                    </form>
+                                    <div className="row mt-3">
+                                        <form className="d-flex" role="search">
+                                            <input className="form-control me-2" type="search" placeholder="Search &#128270;" aria-label="Search" />
+                                        </form>
+
+                                    </div>
                                 </div>
                                 <button className="btn btn-sm btn-primary">
                                     Create Sprint
@@ -97,12 +144,12 @@ export default function ProductBaclogs() {
                             {fakeData.length > 0 ? (
                                 fakeData.map((item, index) => (
                                     <tr key={index}>
-                                        <td  id='backlogTitle'>
-                                            <input type="checkbox" className="mx-2" id={`btncheck${index}`} onChange={()=>{handleSelection(item)}} />
-                                            <FontAwesomeIcon icon={faClipboard} className='mx-2' style={{color: "#1ec840",}} />
-                                            <span  onClick={() => handleMenuShow(item)} style={{textAlign:'left'}}>{item.title}</span>
+                                        <td id='backlogTitle'>
+                                            <input type="checkbox" className="mx-2" id={`btncheck${index}`} onChange={() => { handleSelection(item) }} />
+                                            <FontAwesomeIcon icon={faClipboard} className='mx-2' style={{ color: "#1ec840", }} />
+                                            <span onClick={() => handleMenuShow(item)} style={{ textAlign: 'left' }}>{item.title}</span>
                                         </td>
-                                        
+
                                         <td>
                                             <span className="badge text-bg-secondary">{item.progress ? item.progress : "To-Do"}</span>
                                         </td>
@@ -121,20 +168,25 @@ export default function ProductBaclogs() {
 
                     </table>
                     {
-                        showInputBox ? (
+                        inputEvent.backlogInput ? (
                             <div className="dflex justify-content-center input-group mt-3">
                                 <input
                                     type="text"
                                     className="form-control"
                                     placeholder="Create a Backlog"
-                                    onBlur={handleOnBlur}
+                                    onBlur={()=>{handleOnBlur("backlog")}}
                                     onChange={(e) => setBacklogData({ title: e.target.value })}
                                     aria-label="Issue details"
                                     autoFocus
                                 />
 
                             </div>
-                        ) : <span className='py-4 px-3' id='create_issue' onClick={() => { setShowInputBox(!false) }}>
+                        ) : <span className='py-4 px-3' id='create_issue' onClick={() => {
+                            setInputEvent((prevInputEvent) => ({
+                                ...prevInputEvent,
+                                backlogInput: true
+                            }));
+                        }}>
                             + Create Backlog
                         </span>}
 
@@ -146,36 +198,51 @@ export default function ProductBaclogs() {
                                 <h6>
                                     {menuData.title}
                                 </h6>
-                                <div>
-                                    <span>
-                                        Do the assignment
-                                    </span>
-                                    <span className="ms-3 badge text-bg-secondary">{menuData.progress}</span>
-                                </div>
+                                {inputEvent.backlogDescriptionInput ? (
+                                    <div className="description my-4 border p-3">
+                                        <div className="row">
+                                            <h6 className='mb-3'>
+                                                Description
+                                            </h6>
+                                            <hr />
+                                        </div>
+                                        <div className="container">
+                                            <div className="row">
+                                                <div className="col">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control"
+                                                        placeholder="Enter Description"
+                                                        onBlur={()=>{handleOnBlur("description")}}
+                                                        onChange={(e) => setMenuData({...menuData,description:e.target.value})}
+                                                        aria-label="backlog description"
+                                                        autoFocus
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <span>
+                                            {menuData.description}
+                                            <FontAwesomeIcon
+                                                icon={faPencil}
+                                                className="ms-2"
+                                                style={{ color: "#000000",cursor:"pointer" }}
+                                                onClick={handlePencilIconClick} // Use a function here
+                                            />
+                                        </span>
+                                        <span className="ms-3 badge text-bg-secondary">{menuData.progress}</span>
+                                    </div>
+                                )}
 
                             </div>
                             <div onClick={() => { setShow(false) }} id='close'>
                                 x
                             </div>
                         </div>
-                        <div className="description mb-4 border p-3">
-                            <div className="row">
-                                <h6 className='mb-3'>
-                                    Description
-                                </h6>
-                                <hr />
-                            </div>
-                            <div className="container">
-                                <div className="row">
-                                    <div className="col">
-                                        Description
-                                    </div>
 
-                                </div>
-
-
-                            </div>
-                        </div>
                         <div className="details mb-4 border p-3">
                             <div className="row">
                                 <h6 className='mb-3'>
@@ -240,7 +307,7 @@ export default function ProductBaclogs() {
                                     </div>
                                     <div className="col">
                                         <span>
-                                        {menuData.assignedTo?menuData.assignedTo:"-"}
+                                            {menuData.assignedTo ? menuData.assignedTo : "-"}
 
                                         </span>
                                     </div>

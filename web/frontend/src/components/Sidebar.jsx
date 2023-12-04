@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import '../stylesheets/nav.css'
 export default function Sidebar() {
 
@@ -8,20 +9,17 @@ export default function Sidebar() {
                 <div className="container-fluid inner-siderbar">
                     <div className="items">
                         <div className="item mb-3">
-                            <span className="btn btn-sm btn-dark py-5 px-5">Project</span>
+                            <Link to={"/project"} className="btn btn-sm btn-dark py-5 px-5">Project</Link>
                         </div>
                         <div className="container item my-4 d-flex flex-column justify-content-center">
                             <div className="mb-4">
-                                <span className="btn btn-sm btn-primary btn-font">Product Backlogs</span>
+                                <Link to={"/backlogs"} className="btn btn-sm btn-primary btn-font">Product Backlogs</Link>
                             </div>
                             <div className="mb-4">
-                                <span className="btn btn-sm btn-primary btn-font">Poker Planning</span>
+                                <Link to={"/poker-planning"} className="btn btn-sm btn-primary btn-font">Poker Planning</Link>
                             </div>
                             <div className="mb-4">
-                                <span className="btn btn-sm btn-primary btn-font">Sprints</span>
-                            </div>
-                            <div className="mb-4">
-                                <span className="btn btn-sm btn-primary btn-font">Scrum Board</span>
+                                <Link to={"/board"} className="btn btn-sm btn-primary btn-font">Scrum Board</Link>
                             </div>
                         </div>
 
