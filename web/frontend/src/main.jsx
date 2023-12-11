@@ -8,6 +8,8 @@ import {createBrowserRouter,RouterProvider} from 'react-router-dom'
 import ProductBacklogs from './pages/ProductBacklogs.jsx'
 import Home from './pages/Home.jsx'
 import Board from './pages/Board.jsx'
+import PokerPlaning from './pages/PokerPlaning.jsx'
+import Profile from './pages/Profile.jsx'
 
 const routes = createBrowserRouter([
   {
@@ -33,7 +35,11 @@ const routes = createBrowserRouter([
       },
       {
         path: "/poker-planning",
-        element: <Board />
+        element: <PokerPlaning />
+      },
+      {
+        path: "/profile",
+        element: <Profile />
       }
     ]
   }
