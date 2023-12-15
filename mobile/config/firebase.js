@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import Constants from "expo-constants";
+import { getStorage, ref } from "firebase/storage";
+
 // Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAYGWhlxKSngstW_mzEE6oscRmOBPn0ebE",
@@ -14,6 +15,6 @@ const firebaseConfig = {
   //   @deprecated is deprecated Constants.manifest
 };
 // initialize firebase
-initializeApp(firebaseConfig);
-export const auth = getAuth();
-export const database = getFirestore();
+export const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+export const database = getFirestore(app);
