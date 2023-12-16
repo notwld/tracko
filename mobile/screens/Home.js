@@ -1,16 +1,43 @@
 import React, { useEffect ,useState } from "react";
-import { View, TouchableOpacity, Text, Image, StyleSheet,TextInput, TouchableWithoutFeedback, Keyboard} from "react-native";
+import { View, TouchableOpacity, Text, Image, StyleSheet,TextInput, TouchableWithoutFeedback, Keyboard, Alert} from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { FontAwesome } from '@expo/vector-icons';
 import colors from '../colors';
 import { Entypo } from '@expo/vector-icons';
 const catImageUrl = "https://i.guim.co.uk/img/media/26392d05302e02f7bf4eb143bb84c8097d09144b/446_167_3683_2210/master/3683.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=49ed3252c0b2ffb49cf8b508892e452d";
+import {backlogs} from '../utils/backlogHook';
 
 const Home = () => {
     const [text, setText] = useState('');
+    const [inviteCode,setInviteCode] = useState(0)
     const navigation = useNavigation();
     const changeHandler = (val) => {
         setText(val);
+    }
+
+    const handleInviteCode = () => {
+        fetch("http://192.168.1.105:19001/connect",{
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                code: inviteCode
+            })
+        })
+        .then(res => {return res.json()})
+        .then(data => {
+            if(data.success){
+                navigation.navigate("AssignStoryPoints", { backlog: backlogs[0] });
+
+                }        
+                else
+                Alert.alert("Invalid Code")
+            })
+        .catch(err => {
+            console.log(err)
+        }
+        )
     }
 
     useEffect(() => {
@@ -41,9 +68,9 @@ const Home = () => {
             <View style={styles.content}>
                     <View>
                         <TextInput style={styles.input} placeholder="Enter Your Name" onChangeText={changeHandler} />
-                        <TextInput style={styles.new} placeholder="Invite Code" />
-                        <TouchableOpacity style={styles.btn}>
-                            <Text onPress={(() => { navigation.navigate('AssignStoryPoints') })} style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Login</Text>
+                        <TextInput style={styles.new} placeholder="Invite Code" onChangeText={setInviteCode} />
+                        <TouchableOpacity style={styles.btn} onPress={()=>handleInviteCode()}>
+                            <Text  style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Login</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

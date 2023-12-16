@@ -24,13 +24,14 @@ return (
 
 function ChatStack() {
   return (
-    <Stack.Navigator defaultScreenOptions={Home}>
-      <Stack.Screen name='Home' component={Home} />
-      <Stack.Screen name='Chat' component={Chat} />
-      <Stack.Screen name='AssignStoryPoints' component={AssignStoryPoint} />
+    <Stack.Navigator initialRouteName="Home" >
+      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="AssignStoryPoints" component={AssignStoryPoint} />
     </Stack.Navigator>
   );
 }
+
 
 function AuthStack() {
   return (
