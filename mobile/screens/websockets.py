@@ -27,7 +27,30 @@ def connect():
         return jsonify({'success': True}), 200
     return jsonify({'success': False}), 200
 
+@app.route('/backlogs', methods=['GET'])
+def backlogs():
+    return [
+    {
+        "backlogId": 1,
+        "storyPoint": 0,
+        "backLog": "As a User I want to do something"
+    },
+    {
+        "backlogId": 2,
+        "storyPoint": 0,
+        "backLog": "As a Admin I want to do something"
+    },
+    {
+        "backlogId": 3,
+        "storyPoint": 0,
+        "backLog": "As a Dev I want to do something"
+    },
+    {
+        "backlogId": 4,
+        "storyPoint": 0,
+        "backLog": "As a Engineering I want to do something"
+    },
 
-
+], 200
 if __name__ == '__main__':
-    app.run(debug=True,host="192.168.1.105",port="19001")
+    app.run(debug=True,host="192.168.1.104",port="19001")

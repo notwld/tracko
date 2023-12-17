@@ -5,19 +5,23 @@ import { Entypo } from '@expo/vector-icons';
 import { updateStoryPoint } from '../utils/backlogHook';
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
+import { auth, database, app } from '../config/firebase';
+import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { getDoc } from "firebase/firestore";
 
 
 export default function AssignStoryPoints({ route, navigation }) {
   const { backlog } = route.params;
+  const { revote } = route.params;
   const { backlogId, storyPoint, backLog } = backlog;
 
   const items = [1, 2, 3, 5, 7, 9, 11];
-  const [selectedStoryPoint, setSelectedStoryPoint] = useState(storyPoint);
+  const [selectedStoryPoint, setSelectedStoryPoint] = useState(null);
+  const [documentId, setDocumentId] = useState('');
 
-  
   const handleAssignStoryPoint = (point) => {
     setSelectedStoryPoint(point);
-    updateStoryPoint(point, backlogId);
+
   };
 
   const renderItems = () => {
@@ -32,15 +36,47 @@ export default function AssignStoryPoints({ route, navigation }) {
     ));
   };
 
+  const handleReveal = () => {
+    if (!revote) {
+      const storypointsCollection = collection(database, 'storypoints');
+      addDoc(storypointsCollection, {
+        backlogId,
+        backLog,
+        storyPoint: selectedStoryPoint,
+        assignedBy: auth.currentUser.email.split('@')[0].toString(),
+      })
+        .then((docRef) => {
+          console.log('Document written with ID: ', docRef.id);
+          setDocumentId(docRef.id);
+        })
+        .catch((error) => {
+          console.error('Error writing document: ', error);
+        });
+    } else {
+      const storypointsCollection = collection(database, 'storypoints');
+      updateDoc(doc(storypointsCollection, documentId), {
+        storyPoint: selectedStoryPoint,
+      })
+        .then(() => {
+          console.log('Document successfully updated!');
+        })
+        .catch((error) => {
+          console.error('Error updating document: ', error);
+        });
+
+    }
+    navigation.navigate("CardReveal", { backlog: backlog });
+  }
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <View style={styles.content}>
           <Text style={styles.new}>{backLog}</Text>
           <View style={styles.itemsContainer}>{renderItems()}</View>
-          <TouchableOpacity style={styles.btn} onPress={() => navigation.navigate("Chat",{ backlog:backlog})}>
-            <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Move to Discussion</Text>
+          <TouchableOpacity style={styles.btn} onPress={() => handleReveal()} disabled={storyPoint == null}>
+            <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Reveal your Card</Text>
           </TouchableOpacity>
+
         </View>
       </View>
     </TouchableWithoutFeedback>

@@ -9,14 +9,14 @@ import {backlogs} from '../utils/backlogHook';
 
 const Home = () => {
     const [text, setText] = useState('');
-    const [inviteCode,setInviteCode] = useState(0)
+    const [inviteCode,setInviteCode] = useState("SaU")
     const navigation = useNavigation();
     const changeHandler = (val) => {
         setText(val);
     }
 
     const handleInviteCode = () => {
-        fetch("http://192.168.1.105:19001/connect",{
+        fetch("http://192.168.1.104:19001/connect",{
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
@@ -67,20 +67,14 @@ const Home = () => {
         }}>
             <View style={styles.content}>
                     <View>
-                        <TextInput style={styles.input} placeholder="Enter Your Name" onChangeText={changeHandler} />
                         <TextInput style={styles.new} placeholder="Invite Code" onChangeText={setInviteCode} />
                         <TouchableOpacity style={styles.btn} onPress={()=>handleInviteCode()}>
-                            <Text  style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Login</Text>
+                            <Text  style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Join</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
                 </TouchableWithoutFeedback>
-            <TouchableOpacity
-                onPress={() => navigation.navigate("Chat")}
-                style={styles.chatButton}
-            >
-                <Entypo name="chat" size={24} color={colors.lightGray} />
-            </TouchableOpacity>
+            
         </View>
     );
     };
@@ -112,7 +106,6 @@ const Home = () => {
             marginBottom: 50,
         },
         input: {
-            marginTop: 100,
             marginBottom: 10,
             paddingHorizontal: 8,
             paddingVertical: 6,

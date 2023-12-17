@@ -9,6 +9,7 @@ import Signup from './screens/Signup';
 import Chat from './screens/Chat';
 import Home from './screens/Home';
 import AssignStoryPoint from './screens/AssignStoryPoint';
+import CardReveal from './screens/CardReveal';
 
 const Stack = createStackNavigator();
 const AuthenticatedUserContext = createContext({});
@@ -28,6 +29,7 @@ function ChatStack() {
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Chat" component={Chat} />
       <Stack.Screen name="AssignStoryPoints" component={AssignStoryPoint} />
+      <Stack.Screen name="CardReveal" component={CardReveal} />
     </Stack.Navigator>
   );
 }

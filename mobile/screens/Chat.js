@@ -190,7 +190,7 @@ export default function Chat(props) {
 
   const handleRevote = () => {
     console.log(backlog);
-    navigation.navigate('AssignStoryPoints', { backlog });
+    navigation.navigate('AssignStoryPoints', { backlog,revote:true });
   }
 
   const handleNext = () => {
