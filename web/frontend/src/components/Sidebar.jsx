@@ -1,34 +1,33 @@
-import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import '../stylesheets/nav.css'
+export default function Sidebar() {
 
-export default function Sidebar () {
-  const [showSidebar, setShowSidebar] = useState(false);
 
-  const toggleSidebar = () => {
-    setShowSidebar(!showSidebar);
-  };
+    return (
+        <div className='container sidebar'>
+            <div className="d-flex justify-content-start align-items-center my-2 mx-0">
+                <div className="container-fluid inner-siderbar">
+                    <div className="items">
+                        <div className="item mb-3">
+                            <Link to={"/project"} className="btn btn-sm btn-dark py-5 px-5">Project</Link>
+                        </div>
+                        <div className="container item my-4 d-flex flex-column justify-content-center">
+                            <div className="mb-4">
+                                <Link to={"/backlogs"} className="btn btn-sm btn-primary btn-font">Product Backlogs</Link>
+                            </div>
+                            <div className="mb-4">
+                                <Link to={"/poker-planning"} className="btn btn-sm btn-primary btn-font">Poker Planning</Link>
+                            </div>
+                            <div className="mb-4">
+                                <Link to={"/board"} className="btn btn-sm btn-primary btn-font">Scrum Board</Link>
+                            </div>
+                        </div>
 
-  return (
-    <div className='container-fluid' style={{backgroundColor:"grey"}}>
-        <div className="d-flex justify-content-start align-items-center my-2 mx-0">
-            <div className="container-fluid">
-                <div className="items">
-                    <div className="item mb-3">
-                        <span className="btn btn-sm btn-dark">Tracko</span>
-                    </div>
-                    <div className="item mb-3">
-                        <span className="btn btn-sm btn-dark">Tracko</span>
-                    </div>
-                    <div className="item mb-3">
-                        <span className="btn btn-sm btn-dark">Tracko</span>
-                    </div>
-                    <div className="item mb-3">
-                        <span className="btn btn-sm btn-dark">Tracko</span>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
-    </div>
-  );
+    );
 }
 

@@ -1,0 +1,9 @@
+#close,#create_issue,#backlogTitle{
+    cursor: pointer;
+}
+h6{
+    font-weight: bold;
+}
+#backlogTitle:hover{
+    text-decoration: underline;
+}
