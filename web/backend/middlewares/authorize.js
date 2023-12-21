@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken')
 
 const authorize = (req, res, next) => {
     const token = req.session.token
-    if (!token) return res.redirect(`http://${req.hostname}:${process.env.PORT}/api/auth/login`)
+    if (!token) return res.send("Access Denied")
     try {
         const verified = jwt.verify(token, process.env.SECRET_TOKEN)
         req.user = verified
