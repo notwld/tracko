@@ -18,6 +18,7 @@ export default function AssignStoryPoints({ route, navigation }) {
 
   const items = [1, 2, 3, 5, 7, 9, 11];
   const [selectedStoryPoint, setSelectedStoryPoint] = useState(null);
+  const [allStories, setAllStories] = useState(null);
   const [documentId, setDocumentId] = useState('');
 
   const handleAssignStoryPoint = (point) => {

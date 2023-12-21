@@ -21,7 +21,6 @@ import { AntDesign } from '@expo/vector-icons';
 import colors from '../colors';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
-import * as Permissions from 'expo-permissions';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { backlogs } from '../utils/backlogHook';
 import { BackHandler } from 'react-native';
@@ -56,10 +55,8 @@ export default function Chat(props) {
 
   const route = useRoute();
   useEffect(() => {
-    (async () => {
-      const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
-      setPermissions(status === 'granted');
-    })();
+    const { status } = Audio.requestPermissionsAsync();
+    setPermissions(status);
     BackHandler.addEventListener('hardwareBackPress', () => true);
 
   }, []);
@@ -387,11 +384,11 @@ export default function Chat(props) {
 
 const style = StyleSheet.create({
   btn: {
-    backgroundColor: colors.primary,
+    backgroundColor: "rgb(0, 82, 204)",
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: colors.primary,
+    // shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 2,

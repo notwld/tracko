@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { database } from '../config/firebase';
+import { auth, database } from '../config/firebase';
 import { useNavigation } from "@react-navigation/native";
 import { BackHandler } from 'react-native';
 
@@ -71,7 +71,7 @@ const CardReveal = ({ route }) => {
                 contentContainerStyle={stylesheet.cardContainer}
             />
             <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog })}>
-                <Text style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 15 }}>Move to Discussion</Text>
+                <Text style={{ fontWeight: 'bold', textAlign: 'center',color:"white", fontSize: 15 }}>Move to Discussion</Text>
             </TouchableOpacity>
         </View>
     );
@@ -91,16 +91,17 @@ const stylesheet = StyleSheet.create({
     card: {
         backgroundColor: 'lightblue',
         borderRadius: 10,
-        padding: 20,
+        padding: 10,
         marginVertical: 8,
         marginHorizontal: 8,
-        width: 150,
-        height: 150,
+        width: 100,
+        height: 70,
+        borderWidth: auth.currentUser ? 1 : 0,
         justifyContent: 'center',
         alignItems: 'center',
     },
     btn: {
-        backgroundColor: 'orange',
+        backgroundColor: 'rgb(0, 82, 204)',
         padding: 10,
         borderRadius: 5,
         marginVertical: 20,
