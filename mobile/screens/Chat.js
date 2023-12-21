@@ -24,13 +24,26 @@ import * as FileSystem from 'expo-file-system';
 import * as Permissions from 'expo-permissions';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { backlogs } from '../utils/backlogHook';
+import { BackHandler } from 'react-native';
 
 
 export default function Chat(props) {
   const backlog = props.route.params.backlog;
   console.log(backlog);
 
+  // useEffect(()=>{
 
+  //   const playSound = async() =>{
+  //     const { sound } = await Audio.Sound.createAsync(
+  //       { uri: "https://firebasestorage.googleapis.com/v0/b/tracko-f297a.appspot.com/o/audios%2F1702922662535.3gpp?alt=media&token=26022075-7a5f-4623-84bb-4fa02a24deb3" },
+  //       { shouldPlay: true }
+  //     );
+  //     await sound.playAsync();
+  //   }
+
+  //     playSound()
+
+  // },[])
 
 
   const [messages, setMessages] = useState([]);
@@ -40,12 +53,15 @@ export default function Chat(props) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [permissions, setPermissions] = useState(false);
+
   const route = useRoute();
   useEffect(() => {
     (async () => {
       const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
       setPermissions(status === 'granted');
     })();
+    BackHandler.addEventListener('hardwareBackPress', () => true);
+
   }, []);
 
   const onSignOut = () => {
@@ -88,18 +104,25 @@ export default function Chat(props) {
 
 
   const onSend = useCallback((messages = []) => {
+    
+
     setMessages(previousMessages =>
       GiftedChat.append(previousMessages, messages)
     );
     if (messages[0].audio) {
-      console.log('audio');
+      const { _id, createdAt, text, user } = messages[0];
+
+      console.log('audio======', messages[0].user.downloadURL);
       addDoc(collection(database, 'chats'), {
         _id,
         createdAt,
-        audio: messages[0].audio,
+        audio: messages[0].user.downloadURL,
         user,
 
       });
+
+      return
+      
     } else {
 
       const { _id, createdAt, text, user } = messages[0];
@@ -112,9 +135,10 @@ export default function Chat(props) {
       });
     }
   }, []);
+
   const renderMessage = props => {
     const { currentMessage } = props;
-    if (currentMessage.audio) console.log(currentMessage.audio);
+    if (currentMessage.user.downloadURL) console.log(currentMessage.user.downloadURL,"audi==========");
     return (
       <View
         style={{
@@ -140,7 +164,7 @@ export default function Chat(props) {
               <Text style={{ fontSize: 9, color: 'grey' }}>{currentMessage.createdAt.toLocaleTimeString()}</Text>
             </View>
 
-            <Text style={{ fontSize: 13 }}>{currentMessage.audio ? <View>
+            <Text style={{ fontSize: 13 }}>{currentMessage.user.downloadURL ? <View>
               <TouchableOpacity onPress={async () => {
                 try {
                   if (isPlaying) {
@@ -158,9 +182,9 @@ export default function Chat(props) {
                     console.log('Playing audio..');
                     await Audio.requestPermissionsAsync()
 
-                    if (currentMessage.audio) {
+                    if (currentMessage.user.downloadURL) {
                       const { sound } = await Audio.Sound.createAsync(
-                        { uri: currentMessage.audio },
+                        { uri: currentMessage.user.downloadURL },
                         { shouldPlay: true }
                       );
                       setSound(sound);
@@ -176,7 +200,9 @@ export default function Chat(props) {
               }}
               >
                 <Text>
-                  Play
+                  {
+                    currentMessage._id && isPlaying ? <Text>Stop</Text> : <Text>Play</Text>
+                  }
                 </Text>
               </TouchableOpacity>
             </View> : <Text>
@@ -206,14 +232,18 @@ export default function Chat(props) {
 
     } else {
       console.log("No next element");
-      navigation.navigate('Home');
+      navigation.navigate('FinishScreen');
     }
 }
 
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ display: 'flex', flexDirection: 'row',
+      backgroundColor: '#fff',
+      paddingVertical: 10,
+      borderBottomWidth: 1,
+      justifyContent: 'center', alignItems: 'center' }}>
         <TouchableOpacity style={style.btn} onPress={() => handleRevote()}>
           <Text style={{ color: "white" }}>Re-Vote</Text>
         </TouchableOpacity>
@@ -245,7 +275,7 @@ export default function Chat(props) {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              marginRight: 10
+              marginRight: 10,
             }}
           >
             <TouchableOpacity
@@ -301,7 +331,8 @@ export default function Chat(props) {
                           sound.playAsync();
                           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                             console.log('File available at', downloadURL);
-                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(), audio: sound, user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300' } }];
+
+                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(), audio: sound, user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300', downloadURL: downloadURL } }];
                             onSend(previousMessages);
 
                           });

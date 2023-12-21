@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { StyleSheet, Text, View, Button, TextInput, Image, SafeAreaView, TouchableOpacity, StatusBar, Alert } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../config/firebase";
-const backImage = require("../assets/backImage.png");
+import logo from "../assets/logo.png";
 
 export default function Login({ navigation }) {
 
@@ -19,10 +19,10 @@ export default function Login({ navigation }) {
   
   return (
     <View style={styles.container}>
-      <Image source={backImage} style={styles.backImage} />
       <View style={styles.whiteSheet} />
       <SafeAreaView style={styles.form}>
-        <Text style={styles.title}>Log In</Text>
+      <Image source={logo} style={styles.backImage} />
+
          <TextInput
         style={styles.input}
         placeholder="Enter email"
@@ -49,7 +49,7 @@ export default function Login({ navigation }) {
       <View style={{marginTop: 20, flexDirection: 'row', alignItems: 'center', alignSelf: 'center'}}>
         <Text style={{color: 'gray', fontWeight: '600', fontSize: 14}}>Don't have an account? </Text>
         <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-          <Text style={{color: '#f57c00', fontWeight: '600', fontSize: 14}}> Sign Up</Text>
+          <Text style={{color: 'rgb(0, 82, 204)', fontWeight: '600', fontSize: 14}}> Sign Up</Text>
         </TouchableOpacity>
       </View>
       </SafeAreaView>
@@ -78,12 +78,10 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   backImage: {
-    width: "100%",
-    height: 340,
-    position: "absolute",
-    top: 0,
-    resizeMode: 'cover',
-  },
+    backgroundColor: '#fff',
+    marginVertical: 20,
+    width: 300, height: 80,
+      },
   whiteSheet: {
     width: '100%',
     height: '75%',
@@ -98,7 +96,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 30,
   },
   button: {
-    backgroundColor: '#f57c00',
+    backgroundColor: 'rgb(0, 82, 204)',
     height: 58,
     borderRadius: 10,
     justifyContent: 'center',

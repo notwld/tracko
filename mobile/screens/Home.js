@@ -6,6 +6,9 @@ import colors from '../colors';
 import { Entypo } from '@expo/vector-icons';
 const catImageUrl = "https://i.guim.co.uk/img/media/26392d05302e02f7bf4eb143bb84c8097d09144b/446_167_3683_2210/master/3683.jpg?width=1200&height=1200&quality=85&auto=format&fit=crop&s=49ed3252c0b2ffb49cf8b508892e452d";
 import {backlogs} from '../utils/backlogHook';
+import { auth, database, app } from '../config/firebase';
+import logo from "../assets/logo.png";
+import { BackHandler } from 'react-native';
 
 const Home = () => {
     const [text, setText] = useState('');
@@ -14,6 +17,10 @@ const Home = () => {
     const changeHandler = (val) => {
         setText(val);
     }
+    useEffect(() => {
+        BackHandler.addEventListener('hardwareBackPress', () => true);
+        }
+        , []);
 
     const handleInviteCode = () => {
         fetch("http://192.168.1.104:19001/connect",{
@@ -32,10 +39,14 @@ const Home = () => {
 
                 }        
                 else
-                Alert.alert("Invalid Code")
+                // Alert.alert("Invalid Code")
+                navigation.navigate("AssignStoryPoints", { backlog: backlogs[0] });
+
             })
         .catch(err => {
             console.log(err)
+            navigation.navigate("AssignStoryPoints", { backlog: backlogs[0] });
+
         }
         )
     }
@@ -61,6 +72,15 @@ const Home = () => {
     return (
         
         <View style={styles.container}>
+            <View style={{flexDirection: 'row',marginBottom:20, alignItems: 'center',justifyContent:"center",textAlign:"center"}}>
+            <Image source={logo} style={{width: 300, height: 80}} />
+            </View>
+            <View style={{flexDirection: 'column', alignItems: 'center',justifyContent:"center",textAlign:"center"}}>
+            <Text style={{fontSize: 25, fontWeight: 'bold'}}>Welcome Back {auth.currentUser.email.split("@")[0]}</Text>
+            <Text style={{fontSize: 12,textAlign:"center"}}>
+                Enter Invite Code to Join a Poker Planning Session
+            </Text>
+            </View>
             <TouchableWithoutFeedback onPress={() => {
             Keyboard.dismiss();
             console.log('dismissed keyboard');

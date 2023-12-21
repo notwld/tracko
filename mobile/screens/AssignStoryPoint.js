@@ -6,8 +6,9 @@ import { updateStoryPoint } from '../utils/backlogHook';
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { auth, database, app } from '../config/firebase';
-import { addDoc, collection, doc, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc,onSnapshot } from "firebase/firestore";
 import { getDoc } from "firebase/firestore";
+import { BackHandler } from 'react-native';
 
 
 export default function AssignStoryPoints({ route, navigation }) {
@@ -23,7 +24,9 @@ export default function AssignStoryPoints({ route, navigation }) {
     setSelectedStoryPoint(point);
 
   };
-
+  useEffect(() => {
+    BackHandler.addEventListener('hardwareBackPress', () => true);
+  }, []);
   const renderItems = () => {
     return items.map((item, index) => (
       <TouchableOpacity
@@ -37,8 +40,9 @@ export default function AssignStoryPoints({ route, navigation }) {
   };
 
   const handleReveal = () => {
+    const storypointsCollection = collection(database, 'storypoints');
+    
     if (!revote) {
-      const storypointsCollection = collection(database, 'storypoints');
       addDoc(storypointsCollection, {
         backlogId,
         backLog,
@@ -53,7 +57,6 @@ export default function AssignStoryPoints({ route, navigation }) {
           console.error('Error writing document: ', error);
         });
     } else {
-      const storypointsCollection = collection(database, 'storypoints');
       updateDoc(doc(storypointsCollection, documentId), {
         storyPoint: selectedStoryPoint,
       })
@@ -65,7 +68,7 @@ export default function AssignStoryPoints({ route, navigation }) {
         });
 
     }
-    navigation.navigate("CardReveal", { backlog: backlog });
+    navigation.navigate("CardReveal", { backlog: backlog, docId: documentId });
   }
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
@@ -102,6 +105,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     fontSize: 20,
+    textAlign:"center"
   },
   btn: {
     backgroundColor: myColor,
@@ -112,6 +116,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    paddingTop: 60,
   },
   content: {
     padding: 40,

@@ -3,29 +3,48 @@ import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native
 import { collection, onSnapshot } from 'firebase/firestore';
 import { database } from '../config/firebase';
 import { useNavigation } from "@react-navigation/native";
+import { BackHandler } from 'react-native';
 
 const CardReveal = ({ route }) => {
     const { backlog } = route.params;
     const { backLog, backlogId, storyPoint } = backlog;
     const [selectedStoryPoints, setSelectedStoryPoints] = useState([]);
+    const [maxStoryPoint, setMaxStoryPoint] = useState(null);
+    const [maxFrequency, setMaxFrequency] = useState(0);
     const navigation = useNavigation();
+
     useEffect(() => {
+        BackHandler.addEventListener('hardwareBackPress', () => true);
+
         const dbRef = collection(database, 'storypoints');
         const unsubscribe = onSnapshot(dbRef, (querySnapshot) => {
             const points = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
             setSelectedStoryPoints(points);
-            console.log(points);
+
+            const frequencyMap = {};
+            points.forEach(item => {
+                if(item.backlogId === backlogId){ // ye check krega k screen me jo backlog hai usi k story points show honge
+                    const point = item.storyPoint;
+                    frequencyMap[point] = (frequencyMap[point] || 0) + 1;
+                }
+            });
+
+            for (const point in frequencyMap) {
+                if (frequencyMap[point] > maxFrequency) {
+                    setMaxStoryPoint(point);
+                    setMaxFrequency(frequencyMap[point]);
+                }
+            }
         });
 
         return unsubscribe;
     }, []);
 
     const renderCard = ({ item }) => (
-        
         item.backlogId === backlogId && (
             <View style={stylesheet.card}>
-            <Text style={{textAlign:"center"}}>{item.assignedBy} selected {item.storyPoint}</Text>
-        </View>
+                <Text style={{ textAlign: "center" }}>{item.assignedBy} selected {item.storyPoint}</Text>
+            </View>
         )
     );
 
@@ -34,20 +53,26 @@ const CardReveal = ({ route }) => {
             {
                 justifyContent: 'center',
                 alignItems: 'center',
+                flex: 1,
             }
         }>
             <Text style={stylesheet.backlog}>{backLog}</Text>
+            <Text style={{
+                textAlign: 'center',
+                marginVertical: 2,
+            }}>
+                Most frequent assigned wieght: {maxStoryPoint} (appeared {maxFrequency} times)
+            </Text>
             <FlatList
                 data={selectedStoryPoints}
                 keyExtractor={(item) => item.id}
                 renderItem={renderCard}
-                numColumns={2} // Set the number of columns as per your requirement
+                numColumns={3}
                 contentContainerStyle={stylesheet.cardContainer}
             />
             <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog })}>
-                <Text style={{fontWeight: 'bold', textAlign: 'center', fontSize: 15 }}>Move to Discussion</Text>
+                <Text style={{ fontWeight: 'bold', textAlign: 'center', fontSize: 15 }}>Move to Discussion</Text>
             </TouchableOpacity>
-
         </View>
     );
 };
@@ -73,13 +98,12 @@ const stylesheet = StyleSheet.create({
         height: 150,
         justifyContent: 'center',
         alignItems: 'center',
-        
     },
-    btn:{
+    btn: {
         backgroundColor: 'orange',
         padding: 10,
         borderRadius: 5,
-        marginTop: 10,
+        marginVertical: 20,
     }
 });
 
