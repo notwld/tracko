@@ -12,8 +12,6 @@ const authRoutes = require('./apis/authentication.js');
 
 const backLogs = require('./apis/backlog.js');
 
-const productOwner = require('./apis/product_owner.js');
-
 const projects = require('./apis/projects.js')
 
 app.use(express.json());
@@ -29,16 +27,13 @@ app.use(session({
 
 app.use('/api/auth', authRoutes);
 app.use('/api/backlog', backLogs);
-app.use('/api/product-owner', productOwner);
-app.use('/api/project', projects );
+app.use('/api/project', projects);
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Internal Server Error' });
+});
 
-// app.use((err) => {
-//     console.error(err);
-//     res.status(500).json({
-//         error: err.message,
-//     });
-// });
 
-http.createServer(app).listen(process.env.PORT || 3000,"0.0.0.0", () => {
+http.createServer(app).listen(process.env.PORT || 3000, "0.0.0.0", () => {
     console.log(`--Server is running on port *:${process.env.PORT || 3000}`);
 });

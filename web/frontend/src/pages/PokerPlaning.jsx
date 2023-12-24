@@ -1,26 +1,33 @@
+import React, { useState } from 'react'
 
 export default function PokerPlaning() {
+    const [team, setTeam] = useState([
+        {
+            name: 'Muhammad Waleed',
+            role: 'Developer',
+            status: 'Joined'
+        },
+        {
+            name: 'Farhan Ali',
+            role: 'Developer',
+            status: 'Joined'
+        },
+        {
+            name: 'Abrar',
+            role: 'Developer',
+            status: 'Joined'
+        },
+        {
+            name: 'Ameen',
+            role: 'Developer',
+            status: 'Joined'
+        }
+
+    ])
+    const [selectedTeam, setSelectedTeam] = useState([])
     return (
         <div className='container my-0 px-0 ps-4' >
 
-
-            <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h5 className="modal-title">Modal title</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                            <p>Modal body text goes here.</p>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" className="btn btn-primary">Save changes</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div className="row mt-4">
                 <div className="container">
                     <nav aria-label="breadcrumb">
@@ -41,7 +48,9 @@ export default function PokerPlaning() {
                             </h1>
                         </div>
                         <div className="btns">
-                            <button className="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                            <button className="btn btn-sm btn-primary" onClick={()=>{
+                                alert('Session Started')
+                            }}>
                                 Start Session
                             </button>
                         </div>
@@ -49,22 +58,70 @@ export default function PokerPlaning() {
 
                 </div>
             </div>
-            <div className="row ms-1">
+            <div className="row">
+                <div className="col">
+                    <select className="form-select" aria-label="Default select example">
+                        <option selected>Select Sizing Technique</option>
+                        <option value="1">Fibonacci</option>
+                        <option value="2">T-Shirt</option>
+                        <option value="3">T-Shirt</option>
+                    </select>
+                </div>
+                <div className="col">
+                    <select className="form-select" aria-label="Default select example">
+                        <option selected>Select Sizing Technique</option>
+                        <option value="1">Fibonacci</option>
+                        
+                    </select>
+                </div>
+
+            </div>
+            <div className="row mt-4 ms-1">
                 <table className="table">
                     <tbody>
-                        <tr>
-                            <td>
-                                Muhammad Waleed
-                            </td>
-                            <td>
-                                Team Lead
-                            </td>
-                            <td>
-                                Joined
-                            </td>
-                        </tr>
+                        {
+                            selectedTeam.length>0?selectedTeam.map((member, i) => (
+                                <tr key={i}>
+                                    <td>
+                                        {member.name}
+                                    </td>
+                                    <td>
+                                        {member.role}
+                                    </td>
+                                    <td>
+                                        {member.status}
+                                    </td>
+                                </tr>
+                            )):
+                            <tr >
+                                <td className='text-center'>
+                                    No members selected
+                                </td>
+                            </tr>
+
+                        }
                     </tbody>
                 </table>
+
+            </div>
+            <div className="row">
+                {
+                    team.map((member, i) => (
+                        <div className="col" key={i}
+                            style={{
+                                cursor: "pointer",
+                            }}
+                            onClick={() => {
+                                setSelectedTeam([...selectedTeam, member])
+                                team.splice(i, 1)
+                            }}
+                        >
+                            <span className="badge bg-primary text-wrap" style={{ width: "fit-content" }}>
+                                + {member.name}
+                            </span>
+                        </div>
+                    ))
+                }
             </div>
         </div>
     )

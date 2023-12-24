@@ -251,6 +251,13 @@ export default function Profile() {
                                 </div>
                             </div>
                         </div>
+                        <div className="row my-3">
+                            <div className="d-flex justify-content-center align-items-center">
+                            <button className="btn btn-primary">
+                                Save
+                            </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

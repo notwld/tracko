@@ -10,6 +10,9 @@ import Home from './pages/Home.jsx'
 import Board from './pages/Board.jsx'
 import PokerPlaning from './pages/PokerPlaning.jsx'
 import Profile from './pages/Profile.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import Project from './pages/Project.jsx'
 
 const routes = createBrowserRouter([
   {
@@ -18,23 +21,35 @@ const routes = createBrowserRouter([
     element: <App />,
     children:[
       {
+        path: "/login",
+        element: <Login />
+      },
+      {
+        path: "/register",
+        element: <Register />
+      },
+      {
         path: "/",
         element: <Home />
       },
       {
-        path: "/project",
+        path: "/home",
         element: <Home />
       },
       {
-        path: "/backlogs",
+        path: "/project/:id",
+        element: <Project />
+      },
+      {
+        path: "/project/:id/backlogs",
         element: <ProductBacklogs />
       },
       {
-        path: "/board",
+        path: "/project/:id/board",
         element: <Board />
       },
       {
-        path: "/poker-planning",
+        path: "/project/:id/poker-planning",
         element: <PokerPlaning />
       },
       {
@@ -44,6 +59,7 @@ const routes = createBrowserRouter([
     ]
   }
 ])
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
