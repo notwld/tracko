@@ -4,11 +4,33 @@ import { useState,useEffect } from "react"
 import logo from "../assets/logo.png"
 export default function Nav() {
     const [user, setUser] = useState( null)
+    const [userType, setUserType] = useState(null)
+    const [notfications, setNotfications] = useState([])
+    const [token, setToken] = useState(null)
     useEffect(() => {
         const user = localStorage.getItem('user');
         if (user) {
             setUser(JSON.parse(user));
+            const userType = localStorage.getItem('userType');
+            setUserType(JSON.parse(userType));
+            const authToken = localStorage.getItem('token');
+            setToken(authToken)
         }
+        fetch('http://localhost:3000/api/notifications/list',{
+            method:'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        }).then(res=>res.json())
+        .then(data=>{
+            console.log(data)
+            setNotfications(data.notifications)
+        })
+        .catch(err=>{
+            console.log(err)
+        })
+        
     }, []);
     const handleLogout = async ()=>{
         try{
@@ -53,7 +75,23 @@ export default function Nav() {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
-
+                            
+                            <li className="nav-item dropdown">
+                                <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Notfications
+                                </a>
+                                <ul className="dropdown-menu">
+                                    {
+                                        notfications.map((notfication,index)=>{
+                                            return(
+                                                <li key={index}><a className="dropdown-item" href="#">{notfication.message}</a></li>
+                                            )
+                                        })
+                                    }
+                                    
+                                    
+                                </ul>
+                            </li>
                             <li className="nav-item dropdown">
                                 <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     Your Work

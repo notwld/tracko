@@ -27,7 +27,6 @@ model developer {
   users               users          @relation(fields: [developer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "developer_ibfk_1")
   estimates           estimates?     @relation(fields: [estimates_id], references: [estimates_id], onDelete: NoAction, onUpdate: NoAction, map: "developer_ibfk_2")
   project_team        project_team[]
-
   @@index([estimates_id], map: "estimates_id")
 }
 
@@ -221,4 +220,15 @@ model users {
   product_backlog_product_backlog_reporterTousers product_backlog[] @relation("product_backlog_reporterTousers")
   product_owner                                   product_owner?
   session                                         session[]
+  notification        notification[]
+
+}
+
+model notification {
+  notification_id Int            @id @default(autoincrement())
+  user_id         Int?
+  message         String?        @db.VarChar(255)
+  users           users?         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "notification_ibfk_1")
+  
+  @@index([user_id], map: "user_id")
 }

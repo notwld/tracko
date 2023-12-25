@@ -14,6 +14,10 @@ const backLogs = require('./apis/backlog.js');
 
 const projects = require('./apis/projects.js')
 
+const team = require('./apis/team.js')
+
+const notifcation = require('./apis/notifications.js')
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -28,6 +32,8 @@ app.use(session({
 app.use('/api/auth', authRoutes);
 app.use('/api/backlog', backLogs);
 app.use('/api/project', projects);
+app.use('/api/team', team);
+app.use('/api/notifications', notifcation);
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Internal Server Error' });

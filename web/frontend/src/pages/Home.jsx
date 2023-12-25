@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 export default function Home() {
   const [user, setUser] = useState(null);
+  const [userType, setUserType] = useState(null);
   const [projects, setProjects] = useState([]);
   const [projectTitle, setProjectTitle] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
@@ -13,11 +14,14 @@ export default function Home() {
   const fetchProjects = useCallback(async () => {
     try {
       const response = await fetch('http://localhost:3000/api/project/list', {
-        method: 'GET',
+        method: 'POST',
         headers: {
           'Content-Type': "application/json",
           'Authorization': `Bearer ${token}`,
         },
+        body: JSON.stringify({
+          "user_id": user.user_id,
+        })
       });
 
       if (!response.ok) {
@@ -37,6 +41,8 @@ export default function Home() {
     if (user) {
       setUser(JSON.parse(user));
       const authToken = localStorage.getItem('token');
+      const userType = localStorage.getItem('userType');
+      setUserType(JSON.parse(userType));
       setToken(authToken);
       fetchProjects();
     }
@@ -54,6 +60,7 @@ export default function Home() {
         body: JSON.stringify({
           "title": projectTitle,
           "description": projectDescription,
+          "product_owner_id": userType.product_owner_id,
         }),
       });
 

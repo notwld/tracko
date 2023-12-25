@@ -1,5 +1,5 @@
 import React from 'react'
-let fakeInterrupt= [
+let fakeInterrupt = [
     {
         name: "Sick Leave",
         hours: 4
@@ -40,12 +40,12 @@ export default function Profile() {
     })
     const [inputEvent, setInputEvent] = React.useState({
         interrupt: false,
-        otherInterrupts:false
+        otherInterrupts: false
 
     })
-    const [additionalInterrupt,setAdditionalInterrupt] = React.useState('')
+    const [additionalInterrupt, setAdditionalInterrupt] = React.useState('')
     const onBlurHandle = () => {
-        if (inputEvent.interrupt && interrupt.name && interrupt.hours && interrupt.hours>0) {
+        if (inputEvent.interrupt && interrupt.name && interrupt.hours && interrupt.hours > 0) {
             interrupts.push({ name: interrupt.name, hours: interrupt.hours })
             setInputEvent(!interrupt)
 
@@ -56,12 +56,12 @@ export default function Profile() {
         })
     }
     const removeItem = (index) => {
-        
+
         setInterrupts((prevInterrupts) => {
             const newInterrupts = [...prevInterrupts];
             newInterrupts.splice(index, 1);
             return newInterrupts;
-          });
+        });
     };
     return (
         <div className='container my-0 px-0 ps-4' >
@@ -139,7 +139,7 @@ export default function Profile() {
                                                     <td >
                                                         <div className="d-flex justify-content-center align-items-center">
                                                             <button className="btn btn-danger btn-sm"
-                                                            onClick={()=>{removeItem(index)}}
+                                                                onClick={() => { removeItem(index) }}
                                                             >
                                                                 -</button>
                                                         </div>
@@ -167,10 +167,10 @@ export default function Profile() {
                                                     ...prevInputEvent,
                                                     name: e.target.value
                                                 }));
-                                                e.target.value=="Others"?setInputEvent((prevInputEvent) => ({
+                                                e.target.value == "Others" ? setInputEvent((prevInputEvent) => ({
                                                     ...prevInputEvent,
                                                     otherInterrupts: true
-                                                })):setInputEvent((prevInputEvent) => ({
+                                                })) : setInputEvent((prevInputEvent) => ({
                                                     ...prevInputEvent,
                                                     otherInterrupts: false
                                                 }))
@@ -196,7 +196,7 @@ export default function Profile() {
                                                 className='form-control'
                                                 id='interruptName'
                                                 placeholder='Type'
-                                                onChange={(e) => {setAdditionalInterrupt(e.target.value);}}
+                                                onChange={(e) => { setAdditionalInterrupt(e.target.value); }}
                                             />
                                         </div>
                                     }
@@ -226,7 +226,7 @@ export default function Profile() {
                                                 interrupt: true,
                                             });
                                         }}
-                                        style={{cursor:"pointer"}}
+                                        style={{ cursor: "pointer" }}
                                     >
                                         + Add Interrupt
                                     </span>
@@ -253,9 +253,9 @@ export default function Profile() {
                         </div>
                         <div className="row my-3">
                             <div className="d-flex justify-content-center align-items-center">
-                            <button className="btn btn-primary">
-                                Save
-                            </button>
+                                <button className="btn btn-primary">
+                                    Save
+                                </button>
                             </div>
                         </div>
                     </div>
