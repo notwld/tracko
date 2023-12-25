@@ -1,77 +1,134 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import "../stylesheets/product_backlog.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboard } from "@fortawesome/free-regular-svg-icons"
 import { faPencil } from '@fortawesome/free-solid-svg-icons'
-const fakeData = [{
-    title: "To the space",
-    progress: "In Progress",
-    assignedTo: "Muhammad Waleed",
-    description: "None",
-    sprint: "None",
-    storyPointEstimate: "None",
-    createdAt: "None",
-    updatedAt: "None",
-    reporter: "None",
-    assignee: "None"
-}]
+import { useLocation } from 'react-router-dom'
+
 
 export default function ProductBaclogs() {
+    const location = useLocation();
+    const [user, setUser] = useState(null)
+    const [token, setToken] = useState(null)
+    const [projectId, setProjectId] = useState(location.pathname.split('/')[2])
+    const [backlog, setBacklog] = useState([])
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const authToken = localStorage.getItem('token');
+            setToken(authToken)
+            setUser(JSON.parse(user));
+            setProjectId(location.pathname.split('/')[2])
+            console.log(projectId)
+        }
+        // fetchBacklogs()
+    }, [])
+
+    const fetchBacklogs = async () => {
+        try {
+            const response = await fetch(`http://localhost:3000/api/backlog/${projectId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': `${token}`,
+                },
+            })
+            if (!response.ok) {
+                throw new Error('Failed to fetch projects');
+            }
+            const backlogData = await response.json();
+            console.log(backlogData);
+            setBacklog(backlogData.backlog);
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
 
 
     const [show, setShow] = useState(false)
     const [backlogData, setBacklogData] = useState({
+        id: 0,
+        projectId: 0,
         title: "None",
-        progress: "None",
-        assignedTo: "None",
         description: "None",
-        sprint: "None",
-        storyPointEstimate: "None",
-        createdAt: "None",
-        updatedAt: "None",
+        priority: "None",
+        assignee: "None",
         reporter: "None",
-        assignee: "None"
+        progress: "None"
     })
 
     const [selectBacklog, setSelectBacklog] = useState([])
-    const [inputEvent, setInputEvent] = useState({ 
-        backlogInput: false, 
+    const [inputEvent, setInputEvent] = useState({
+        backlogInput: false,
         backlogDescriptionInput: false,
-     })
+    })
     const [menuData, setMenuData] = useState({
+        id: 0,
+        projectId: 0,
         title: "None",
-        progress: "None",
-        assignedTo: "None",
         description: "None",
-        sprint: "None",
-        storyPointEstimate: "None",
-        createdAt: "None",
-        updatedAt: "None",
+        priority: "None",
+        assignee: "None",
         reporter: "None",
-        assignee: "None"
     })
 
-    const handleOnBlur = (mode) => {
-        if(mode=="backlog"){
-            if (backlogData.title != "None" && backlogData.title.length > 4) {
-                fakeData.push({ ...backlogData })
+    const handleOnBlur = async (mode) => {
+        if (mode == "backlog") {
+            if (backlogData.title != "None" && backlogData.priority != "None" && backlogData.progress != "None") {
+                const projectId = location.pathname.split('/')[2]
+                try {
+                    const response = await fetch('http://localhost:3000/api/backlog/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `${token}`,
+                        },
+                        body: JSON.stringify({
+                            'projectId': projectId,
+                            'title': backlogData.title,
+                            'description': backlogData.description,
+                            'priority': backlogData.priority,
+                            'progress': backlogData.progress,
+                        }),
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error(errorData); // Log the error data
+                        return;
+                    }
+                    const backlogs= await response.json();
+                    console.log(backlogs);
+                    setBacklog(backlogs.updatedProductBacklog);
+
+                }
+                catch (error) {
+                    console.log(error)
+                }
+                // alert(`Backlog Created Successfully with title ${backlogData.title} and priority ${backlogData.priority} and progress ${backlogData.progress} and description ${backlogData.description} `)
             }
             setBacklogData({
+                id: 0,
+                projectId: 0,
                 title: "None",
-                progress: "None",
-                assignedTo: "None"
+                description: "None",
+                priority: "None",
+                assignee: "None",
+                reporter: "None",
+                progress: "None"
+
             })
             setInputEvent((prevInputEvent) => ({
                 ...prevInputEvent,
                 backlogInput: false,
             }));
         }
-        else if(mode=="description"){
+        else if (mode == "description") {
             setInputEvent((prevInputEvent) => ({
                 ...prevInputEvent,
                 backlogDescriptionInput: false,
             }));
-        }else{
+        } else {
             return
         }
 
@@ -133,33 +190,44 @@ export default function ProductBaclogs() {
                                     </div>
                                 </div>
                                 <button className="btn btn-sm btn-primary">
-                                    Create Sprint
+                                    Start Sprint
                                 </button>
                             </div>
                         </div>
                     </div>
                     <table className="table">
-
+                        {backlog?.length > 0 &&
+                            <thead>
+                                <tr>
+                                    <th scope="col">Backlog</th>
+                                    <th scope="col">Priority</th>
+                                    <th scope="col">Progress</th>
+                                    <th scope="col">Assignee</th>
+                                </tr>
+                            </thead>
+                        }
                         <tbody>
-                            {fakeData.length > 0 ? (
-                                fakeData.map((item, index) => (
+                            {backlog?.length > 0 ? (
+                                backlog.map((item, index) => (
                                     <tr key={index}>
                                         <td id='backlogTitle'>
                                             <input type="checkbox" className="mx-2" id={`btncheck${index}`} onChange={() => { handleSelection(item) }} />
                                             <FontAwesomeIcon icon={faClipboard} className='mx-2' style={{ color: "#1ec840", }} />
                                             <span onClick={() => handleMenuShow(item)} style={{ textAlign: 'left' }}>{item.title}</span>
                                         </td>
-
+                                        <td>
+                                            <span className="badge text-bg-secondary">{item.priority ? item.priority : 0}</span>
+                                        </td>
                                         <td>
                                             <span className="badge text-bg-secondary">{item.progress ? item.progress : "To-Do"}</span>
                                         </td>
-                                        <td >{item.assignedTo ? item.assignedTo : "None"}</td>
+                                        <td >{item.reporter ? item.reporter : "Not Assigned Yet"}</td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={6}>
-                                        <span>No Backlogs</span>
+                                    <td colSpan={6} className="text-center">
+                                        <span>No Backlogs added yet</span>
                                     </td>
                                 </tr>
                             )}
@@ -169,17 +237,85 @@ export default function ProductBaclogs() {
                     </table>
                     {
                         inputEvent.backlogInput ? (
-                            <div className="dflex justify-content-center input-group mt-3">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Create a Backlog"
-                                    onBlur={()=>{handleOnBlur("backlog")}}
-                                    onChange={(e) => setBacklogData({ title: e.target.value })}
-                                    aria-label="Issue details"
-                                    autoFocus
-                                />
+                            <div className="row d-flex justify-content-center input-group my-3 mb-5">
+                                <div className="col">
+                                    <h1 className="display-6 text-center my-3">
+                                        Create Backlog
+                                    </h1>
+                                </div>
+                                <div className="row my-3">
+                                    <div className="col">
+                                        <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Enter backlog title"
+                                            // onBlur={() => { handleOnBlur("backlog") }}
+                                            onChange={(e) => {
+                                                setBacklogData((prevBacklogData) => ({
+                                                    ...prevBacklogData,
+                                                    title: e.target.value
+                                                }))
+                                            }
+                                            }
+                                            aria-label="Issue details"
+                                            autoFocus
+                                        />
+                                    </div>
+                                    {/* <div className="col">
+                                       
+                                        <select className="form-select" aria-label="Default select example">
+                                            <option selected>Select Assignee</option>
+                                            <option value="1">Farhan</option>
+                                            <option value="2">Bajwa</option>
+                                            <option value="3">Ameen</option>
+                                        </select>
+                                    </div> */}
 
+                                </div>
+                                <div className="row">
+                                    <div className="col">
+                                        <select className="form-select" aria-label="Default select example" onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, priority: e.target.value }))}  >
+                                            <option selected>Select Priority</option>
+                                            <option value="high">High</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="low">Low</option>
+                                        </select>
+                                    </div>
+                                    <div className="col">
+                                        <select className="form-select" aria-label="Default select example" onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))} >
+                                            <option value="to_do" selected>To-Do</option>
+                                            <option value="in_progress">In-Progress</option>
+                                            <option value="done">Done</option>
+                                        </select>
+                                    </div>
+
+                                </div>
+                                <div className="row my-3" style={{ width: "fit-content" }}>
+                                    {/* <input
+                                            type="text"
+                                            className="form-control"
+                                            placeholder="Enter Description"
+                                            // onBlur={() => { handleOnBlur("backlog") }}
+                                            onChange={(e) => setBacklogData({ description: e.target.value })}
+                                            aria-label="Issue details"
+                                        // autoFocus
+                                        /> */}
+
+                                    <textarea
+                                        className="form-control"
+                                        id="exampleFormControlTextarea1"
+                                        rows="3"
+                                        cols={129}
+                                        placeholder="Enter Description"
+                                        onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, description: e.target.value }))}
+                                    ></textarea>
+                                </div>
+                                <div className="row d-flex justify-content-center align-items-center w-50">
+
+                                    <button className="btn btn-sm btn-primary" onClick={() => { handleOnBlur("backlog") }}>
+                                        Create
+                                    </button>
+                                </div>
                             </div>
                         ) : <span className='py-4 px-3' id='create_issue' onClick={() => {
                             setInputEvent((prevInputEvent) => ({
@@ -213,8 +349,8 @@ export default function ProductBaclogs() {
                                                         type="text"
                                                         className="form-control"
                                                         placeholder="Enter Description"
-                                                        onBlur={()=>{handleOnBlur("description")}}
-                                                        onChange={(e) => setMenuData({...menuData,description:e.target.value})}
+                                                        onBlur={() => { handleOnBlur("description") }}
+                                                        onChange={(e) => setMenuData({ ...menuData, description: e.target.value })}
                                                         aria-label="backlog description"
                                                         autoFocus
                                                     />
@@ -229,7 +365,7 @@ export default function ProductBaclogs() {
                                             <FontAwesomeIcon
                                                 icon={faPencil}
                                                 className="ms-2"
-                                                style={{ color: "#000000",cursor:"pointer" }}
+                                                style={{ color: "#000000", cursor: "pointer" }}
                                                 onClick={handlePencilIconClick} // Use a function here
                                             />
                                         </span>

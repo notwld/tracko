@@ -1,11 +1,10 @@
 import { Link } from "react-router-dom"
 import "../stylesheets/nav.css"
-import { useState,useEffect } from "react"
+import { useState, useEffect } from "react"
 import logo from "../assets/logo.png"
 export default function Nav() {
-    const [user, setUser] = useState( null)
+    const [user, setUser] = useState(null)
     const [userType, setUserType] = useState(null)
-    const [notfications, setNotfications] = useState([])
     const [token, setToken] = useState(null)
     useEffect(() => {
         const user = localStorage.getItem('user');
@@ -16,26 +15,13 @@ export default function Nav() {
             const authToken = localStorage.getItem('token');
             setToken(authToken)
         }
-        fetch('http://localhost:3000/api/notifications/list',{
-            method:'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-        }).then(res=>res.json())
-        .then(data=>{
-            console.log(data)
-            setNotfications(data.notifications)
-        })
-        .catch(err=>{
-            console.log(err)
-        })
         
+
     }, []);
-    const handleLogout = async ()=>{
-        try{
-            await fetch('http://localhost:3000/api/auth/logout',{
-                method:'POST',
+    const handleLogout = async () => {
+        try {
+            await fetch('http://localhost:3000/api/auth/logout', {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -43,19 +29,19 @@ export default function Nav() {
                     user
                 }),
             })
-            .then(res=>res.json())
-            .then(data=>{
-                console.log(data)
-                localStorage.removeItem('user')
-                localStorage.removeItem('token')
-                localStorage.removeItem('userType')
-                window.location.href = '/login'
-            })
-            .catch(err=>{
-                console.log(err)
-            })
+                .then(res => res.json())
+                .then(data => {
+                    console.log(data)
+                    localStorage.removeItem('user')
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('userType')
+                    window.location.href = '/login'
+                })
+                .catch(err => {
+                    console.log(err)
+                })
         }
-        catch(error){
+        catch (error) {
             console.log(error)
         }
 
@@ -67,7 +53,7 @@ export default function Nav() {
                     <div className="container py-1">
                         <Link className="navbar-brand" to={"/home"}>
                             <img src={logo} height="32" />
-                            
+
                         </Link>
                     </div>
                     <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -75,23 +61,8 @@ export default function Nav() {
                     </button>
                     <div className="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+
                             
-                            <li className="nav-item dropdown">
-                                <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Notfications
-                                </a>
-                                <ul className="dropdown-menu">
-                                    {
-                                        notfications.map((notfication,index)=>{
-                                            return(
-                                                <li key={index}><a className="dropdown-item" href="#">{notfication.message}</a></li>
-                                            )
-                                        })
-                                    }
-                                    
-                                    
-                                </ul>
-                            </li>
                             <li className="nav-item dropdown">
                                 <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     Your Work
@@ -105,13 +76,13 @@ export default function Nav() {
                             </li>
 
                             <li className="nav-item dropdown">
-                            <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a className="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     {user.username}
                                 </a>
                                 <ul className="dropdown-menu">
                                     <li><Link to={"/profile"} className="dropdown-item">Profile</Link></li>
                                     <li><hr className="dropdown-divider" /></li>
-                                    <li><a className="dropdown-item" style={{cursor:"pointer"}} onClick={()=>{handleLogout()}}>Logout</a></li>
+                                    <li><a className="dropdown-item" style={{ cursor: "pointer" }} onClick={() => { handleLogout() }}>Logout</a></li>
                                 </ul>
                             </li>
                         </ul>

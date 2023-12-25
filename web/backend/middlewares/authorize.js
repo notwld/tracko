@@ -8,7 +8,7 @@ const authorize = (req, res, next) => {
     // console.log(req.token)
     if (!token) return res.send("Access Denied")
     try {
-        const verified = jwt.verify(token.split(' ')[1], process.env.SECRET_TOKEN)
+        const verified = jwt.verify(token, process.env.SECRET_TOKEN)
         req.session.user = verified.user_id
         next()
     } catch (err) {

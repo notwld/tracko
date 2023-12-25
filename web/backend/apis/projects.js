@@ -48,16 +48,16 @@ router.post('/create', authorize, async (req, res) => {
 // Route for retrieving all projects
 router.post('/list', authorize, async (req, res) => {
   const { user_id } = req.body;
-  try{
+  try {
     const user = await prisma.users.findUnique({
       where: {
         user_id: user_id,
       }
     });
-    if(user.role==="Product Owner"){
+    if (user.role === "Product Owner") {
       const productOwner = await prisma.product_owner.findFirst({
         where: {
-          users:{
+          users: {
             user_id: user_id,
           }
         }
@@ -72,39 +72,44 @@ router.post('/list', authorize, async (req, res) => {
       }
       res.status(200).json({ projects });
     }
-    else if(user.role === "Developer"){
+    else if (user.role === "Developer") {
       const developer = await prisma.developer.findFirst({
         where: {
-          users:{
+          users: {
             user_id: user_id,
           }
         }
       });
 
-      try{
-        const projects = await prisma.project_team.findMany({
-          where: {
-            developer_id: developer.developer_id,
-          },
-          include: {
-            project: true,
-          },
-        });
+      try {
+        let projects = await prisma.project.findMany({
+          where:{
+            project_team:{
+              some:{
+                developer:{
+                  developer_id:developer.developer_id
+                }
+              }
+            }
+          }
+        })
+        if (!projects) {
+          return res.status(404).json({ error: 'No projects found' });
+        }
+        projects=projects
+        res.status(200).json({ projects });
       }
-      catch(error){
+      catch (error) {
         console.error(error);
         res.status(404).json({ error: 'no projects found' });
       }
 
-      if (!projects) {
-        return res.status(404).json({ error: 'No projects found' });
-      }
-      res.status(200).json({ projects });
+
 
     }
-   
+
   }
-  catch(error){
+  catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Internal Server Error' });
   }

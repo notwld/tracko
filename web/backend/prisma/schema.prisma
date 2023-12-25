@@ -27,6 +27,7 @@ model developer {
   users               users          @relation(fields: [developer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "developer_ibfk_1")
   estimates           estimates?     @relation(fields: [estimates_id], references: [estimates_id], onDelete: NoAction, onUpdate: NoAction, map: "developer_ibfk_2")
   project_team        project_team[]
+
   @@index([estimates_id], map: "estimates_id")
 }
 
@@ -74,7 +75,7 @@ model product_backlog {
   project_id                                              Int?
   title                                                   String           @db.VarChar(255)
   description                                             String?          @db.Text
-  priority                                                Int?
+  priority                                                String?          @db.VarChar(255)
   assignee                                                Int?
   reporter                                                Int?
   task_id                                                 Int?
@@ -117,6 +118,7 @@ model project {
   product_owner_id                                            Int?
   poker_planning_id                                           Int?
   project_team_id                                             Int?
+  project_team                                                project_team[]
   poker_planning_poker_planning_project_idToproject           poker_planning[]  @relation("poker_planning_project_idToproject")
   product_backlog_product_backlog_project_idToproject         product_backlog[] @relation("product_backlog_project_idToproject")
   product_owner_product_owner_project_idToproject             product_owner[]   @relation("product_owner_project_idToproject")
@@ -124,8 +126,6 @@ model project {
   sprint                                                      sprint?           @relation(fields: [sprint_id], references: [sprint_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_2")
   product_owner_project_product_owner_idToproduct_owner       product_owner?    @relation("project_product_owner_idToproduct_owner", fields: [product_owner_id], references: [product_owner_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_3")
   poker_planning_project_poker_planning_idTopoker_planning    poker_planning?   @relation("project_poker_planning_idTopoker_planning", fields: [poker_planning_id], references: [poker_planning_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_4")
-  project_team_project_project_team_idToproject_team          project_team?     @relation("project_project_team_idToproject_team", fields: [project_team_id], references: [project_team_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_5")
-  project_team_project_team_project_idToproject               project_team[]    @relation("project_team_project_idToproject")
 
   @@index([poker_planning_id], map: "poker_planning_id")
   @@index([product_backlog_id], map: "product_backlog_id")
@@ -135,16 +135,15 @@ model project {
 }
 
 model project_team {
-  project_team_id                               Int            @id @default(autoincrement())
-  developer_id                                  Int?
-  scrum_master_id                               Int?
-  product_owner_id                              Int?
-  project_id                                    Int?
-  project_project_project_team_idToproject_team project[]      @relation("project_project_team_idToproject_team")
-  developer                                     developer?     @relation(fields: [developer_id], references: [developer_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_1")
-  scrum_master                                  scrum_master?  @relation(fields: [scrum_master_id], references: [scrum_master_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_2")
-  product_owner                                 product_owner? @relation(fields: [product_owner_id], references: [product_owner_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_3")
-  project_project_team_project_idToproject      project?       @relation("project_team_project_idToproject", fields: [project_id], references: [project_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_4")
+  project_team_id  Int            @id @default(autoincrement())
+  developer_id     Int?
+  scrum_master_id  Int?
+  product_owner_id Int?
+  project_id       Int?
+  developer        developer?     @relation(fields: [developer_id], references: [developer_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_1")
+  scrum_master     scrum_master?  @relation(fields: [scrum_master_id], references: [scrum_master_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_2")
+  product_owner    product_owner? @relation(fields: [product_owner_id], references: [product_owner_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_3")
+  project          project?       @relation(fields: [project_id], references: [project_id], onDelete: NoAction, onUpdate: NoAction, map: "project_team_ibfk_4")
 
   @@index([developer_id], map: "developer_id")
   @@index([product_owner_id], map: "product_owner_id")
@@ -220,15 +219,25 @@ model users {
   product_backlog_product_backlog_reporterTousers product_backlog[] @relation("product_backlog_reporterTousers")
   product_owner                                   product_owner?
   session                                         session[]
-  notification        notification[]
-
+  notification                                    notification[]
 }
 
 model notification {
-  notification_id Int            @id @default(autoincrement())
+  notification_id Int          @id @default(autoincrement())
   user_id         Int?
-  message         String?        @db.VarChar(255)
-  users           users?         @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "notification_ibfk_1")
-  
+  message         String?      @db.VarChar(255)
+  users           users?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "notification_ibfk_1")
+  invitation      invitation[]
+
   @@index([user_id], map: "user_id")
+}
+
+model invitation {
+  invitation_id    Int           @id @default(autoincrement())
+  project_id       Int?
+  developer_id     Int?
+  product_owner_id Int?
+  notification_id  Int?
+  status           String?       @db.VarChar(255)
+  notification     notification? @relation(fields: [notification_id], references: [notification_id], onDelete: NoAction, onUpdate: NoAction, map: "invitation_ibfk_1")
 }
