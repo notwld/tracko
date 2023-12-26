@@ -134,7 +134,7 @@ export default function Project() {
                                 {user.role === "Product Owner" ? <button className="btn btn-primary btn-sm" onClick={() => setInputTag(!inputTag)}>Invite</button> : null}
                                 {
                                     inputTag && <div className="input-group input-group-sm mx-2">
-                                        <input type="text" className="form-control" placeholder="Enter email" aria-label="Enter email" aria-describedby="button-addon2" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => { setInputTag(false) }} />
+                                        <input type="text" className="form-control" placeholder="Enter email" aria-label="Enter email" aria-describedby="button-addon2" autoFocus value={email} onChange={(e) => setEmail(e.target.value)}  />
                                         <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={() => handleOnInvite()}>Send</button>
                                     </div>
                                 }

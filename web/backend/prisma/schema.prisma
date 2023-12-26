@@ -41,28 +41,22 @@ model duration {
 }
 
 model estimates {
-  estimates_id                                                  Int               @id @default(autoincrement())
-  story_points                                                  Int?
-  product_backlog_id                                            Int?
-  developer                                                     developer[]
-  product_backlog_estimates_product_backlog_idToproduct_backlog product_backlog?  @relation("estimates_product_backlog_idToproduct_backlog", fields: [product_backlog_id], references: [product_backlog_id], onDelete: NoAction, onUpdate: NoAction, map: "estimates_ibfk_1")
-  poker_planning                                                poker_planning[]
-  product_backlog_product_backlog_estimates_idToestimates       product_backlog[] @relation("product_backlog_estimates_idToestimates")
-
-  @@index([product_backlog_id], map: "product_backlog_id")
+  estimates_id       Int              @id @default(autoincrement())
+  story_points       Int?
+  product_backlog_id Int?
+  developer          developer[]
+  poker_planning     poker_planning[]
 }
 
 model poker_planning {
-  poker_planning_id                                 Int              @id @default(autoincrement())
-  session_id                                        Int?
-  project_id                                        Int?
-  estimates_id                                      Int?
-  product_backlog_id                                Int?
-  session                                           session?         @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_1")
-  project_poker_planning_project_idToproject        project?         @relation("poker_planning_project_idToproject", fields: [project_id], references: [project_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_2")
-  estimates                                         estimates?       @relation(fields: [estimates_id], references: [estimates_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_3")
-  product_backlog                                   product_backlog? @relation(fields: [product_backlog_id], references: [product_backlog_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_4")
-  project_project_poker_planning_idTopoker_planning project[]        @relation("project_poker_planning_idTopoker_planning")
+  poker_planning_id  Int              @id @default(autoincrement())
+  session_id         Int?
+  project_id         Int?
+  estimates_id       Int?
+  product_backlog_id Int?
+  session            session?         @relation(fields: [session_id], references: [session_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_1")
+  estimates          estimates?       @relation(fields: [estimates_id], references: [estimates_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_3")
+  product_backlog    product_backlog? @relation(fields: [product_backlog_id], references: [product_backlog_id], onDelete: NoAction, onUpdate: NoAction, map: "poker_planning_ibfk_4")
 
   @@index([estimates_id], map: "estimates_id")
   @@index([product_backlog_id], map: "product_backlog_id")
@@ -71,25 +65,17 @@ model poker_planning {
 }
 
 model product_backlog {
-  product_backlog_id                                      Int              @id @default(autoincrement())
-  project_id                                              Int?
-  title                                                   String           @db.VarChar(255)
-  description                                             String?          @db.Text
-  priority                                                String?          @db.VarChar(255)
-  assignee                                                Int?
-  reporter                                                Int?
-  task_id                                                 Int?
-  estimates_id                                            Int?
-  estimates_estimates_product_backlog_idToproduct_backlog estimates[]      @relation("estimates_product_backlog_idToproduct_backlog")
-  poker_planning                                          poker_planning[]
-  project_product_backlog_project_idToproject             project?         @relation("product_backlog_project_idToproject", fields: [project_id], references: [project_id], onDelete: NoAction, onUpdate: NoAction, map: "product_backlog_ibfk_1")
-  users_product_backlog_assigneeTousers                   users?           @relation("product_backlog_assigneeTousers", fields: [assignee], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "product_backlog_ibfk_2")
-  users_product_backlog_reporterTousers                   users?           @relation("product_backlog_reporterTousers", fields: [reporter], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "product_backlog_ibfk_3")
-  task_product_backlog_task_idTotask                      task?            @relation("product_backlog_task_idTotask", fields: [task_id], references: [task_id], onDelete: NoAction, onUpdate: NoAction, map: "product_backlog_ibfk_4")
-  estimates_product_backlog_estimates_idToestimates       estimates?       @relation("product_backlog_estimates_idToestimates", fields: [estimates_id], references: [estimates_id], onDelete: NoAction, onUpdate: NoAction, map: "product_backlog_ibfk_5")
-  project_project_product_backlog_idToproduct_backlog     project[]        @relation("project_product_backlog_idToproduct_backlog")
-  sprint_backlog                                          sprint_backlog[]
-  task_task_product_backlog_idToproduct_backlog           task[]           @relation("task_product_backlog_idToproduct_backlog")
+  product_backlog_id Int              @id @default(autoincrement())
+  project_id         Int?
+  title              String           @db.VarChar(255)
+  description        String          @db.Text
+  priority           String?          @db.VarChar(255)
+  assignee           Int?
+  reporter           Int?
+  task_id            Int?
+  estimates_id       Int?
+  poker_planning     poker_planning[]
+  sprint_backlog_id  Int?
 
   @@index([assignee], map: "assignee")
   @@index([estimates_id], map: "estimates_id")
@@ -99,33 +85,25 @@ model product_backlog {
 }
 
 model product_owner {
-  product_owner_id                                Int            @id @default(autoincrement())
-  project_id                                      Int?
-  users                                           users          @relation(fields: [product_owner_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "product_owner_ibfk_1")
-  project_product_owner_project_idToproject       project?       @relation("product_owner_project_idToproject", fields: [project_id], references: [project_id], onDelete: NoAction, onUpdate: NoAction, map: "product_owner_ibfk_2")
-  project_project_product_owner_idToproduct_owner project[]      @relation("project_product_owner_idToproduct_owner")
-  project_team                                    project_team[]
+  product_owner_id Int            @id @default(autoincrement())
+  project_id       Int?
+  users            users          @relation(fields: [product_owner_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "product_owner_ibfk_1")
+  project_team     project_team[]
 
   @@index([project_id], map: "project_id")
 }
 
 model project {
-  project_id                                                  Int               @id @default(autoincrement())
-  title                                                       String            @db.VarChar(255)
-  description                                                 String?           @db.Text
-  product_backlog_id                                          Int?
-  sprint_id                                                   Int?
-  product_owner_id                                            Int?
-  poker_planning_id                                           Int?
-  project_team_id                                             Int?
-  project_team                                                project_team[]
-  poker_planning_poker_planning_project_idToproject           poker_planning[]  @relation("poker_planning_project_idToproject")
-  product_backlog_product_backlog_project_idToproject         product_backlog[] @relation("product_backlog_project_idToproject")
-  product_owner_product_owner_project_idToproject             product_owner[]   @relation("product_owner_project_idToproject")
-  product_backlog_project_product_backlog_idToproduct_backlog product_backlog?  @relation("project_product_backlog_idToproduct_backlog", fields: [product_backlog_id], references: [product_backlog_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_1")
-  sprint                                                      sprint?           @relation(fields: [sprint_id], references: [sprint_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_2")
-  product_owner_project_product_owner_idToproduct_owner       product_owner?    @relation("project_product_owner_idToproduct_owner", fields: [product_owner_id], references: [product_owner_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_3")
-  poker_planning_project_poker_planning_idTopoker_planning    poker_planning?   @relation("project_poker_planning_idTopoker_planning", fields: [poker_planning_id], references: [poker_planning_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_4")
+  project_id         Int            @id @default(autoincrement())
+  title              String         @db.VarChar(255)
+  description        String?        @db.Text
+  product_backlog_id Int?
+  sprint_id          Int?
+  product_owner_id   Int?
+  poker_planning_id  Int?
+  project_team_id    Int?
+  project_team       project_team[]
+  sprint             sprint?        @relation(fields: [sprint_id], references: [sprint_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_2")
 
   @@index([poker_planning_id], map: "poker_planning_id")
   @@index([product_backlog_id], map: "product_backlog_id")
@@ -171,55 +149,44 @@ model session {
 }
 
 model sprint {
-  sprint_id                                               Int              @id @default(autoincrement())
-  start_date                                              DateTime?        @db.Date
-  end_date                                                DateTime?        @db.Date
-  sprint_backlog_id                                       Int?
-  project                                                 project[]
-  sprint_backlog_sprint_sprint_backlog_idTosprint_backlog sprint_backlog?  @relation("sprint_sprint_backlog_idTosprint_backlog", fields: [sprint_backlog_id], references: [sprint_backlogs_id], onDelete: NoAction, onUpdate: NoAction, map: "sprint_ibfk_1")
-  sprint_backlog_sprint_backlog_sprint_idTosprint         sprint_backlog[] @relation("sprint_backlog_sprint_idTosprint")
+  sprint_id         Int       @id @default(autoincrement())
+  start_date        DateTime? @db.Date
+  end_date          DateTime? @db.Date
+  sprint_backlog_id Int?
+  project           project[]
 
   @@index([sprint_backlog_id], map: "sprint_backlog_id")
 }
 
 model sprint_backlog {
-  sprint_backlogs_id                              Int              @id @default(autoincrement())
-  product_backlogs_id                             Int?
-  sprint_id                                       Int?
-  sprint_sprint_sprint_backlog_idTosprint_backlog sprint[]         @relation("sprint_sprint_backlog_idTosprint_backlog")
-  product_backlog                                 product_backlog? @relation(fields: [product_backlogs_id], references: [product_backlog_id], onDelete: NoAction, onUpdate: NoAction, map: "sprint_backlog_ibfk_1")
-  sprint_sprint_backlog_sprint_idTosprint         sprint?          @relation("sprint_backlog_sprint_idTosprint", fields: [sprint_id], references: [sprint_id], onDelete: NoAction, onUpdate: NoAction, map: "sprint_backlog_ibfk_2")
+  sprint_backlogs_id  Int  @id @default(autoincrement())
+  product_backlogs_id Int?
+  sprint_id           Int?
 
   @@index([product_backlogs_id], map: "product_backlogs_id")
   @@index([sprint_id], map: "sprint_id")
 }
 
 model task {
-  task_id                                                  Int               @id @default(autoincrement())
-  type                                                     String?           @db.VarChar(255)
-  status                                                   String?           @db.VarChar(255)
-  start_date                                               DateTime?         @db.Date
-  end_date                                                 DateTime?         @db.Date
-  product_backlog_id                                       Int?
-  product_backlog_product_backlog_task_idTotask            product_backlog[] @relation("product_backlog_task_idTotask")
-  product_backlog_task_product_backlog_idToproduct_backlog product_backlog?  @relation("task_product_backlog_idToproduct_backlog", fields: [product_backlog_id], references: [product_backlog_id], onDelete: NoAction, onUpdate: NoAction, map: "task_ibfk_1")
-
-  @@index([product_backlog_id], map: "product_backlog_id")
+  task_id            Int       @id @default(autoincrement())
+  type               String?   @db.VarChar(255)
+  status             String?   @db.VarChar(255)
+  start_date         DateTime? @db.Date
+  end_date           DateTime? @db.Date
+  product_backlog_id Int
 }
 
 model users {
-  user_id                                         Int               @id @default(autoincrement())
-  username                                        String            @db.VarChar(255)
-  email                                           String            @db.VarChar(255)
-  password                                        String            @db.VarChar(255)
-  role                                            String
-  attendee                                        attendee[]
-  developer                                       developer?
-  product_backlog_product_backlog_assigneeTousers product_backlog[] @relation("product_backlog_assigneeTousers")
-  product_backlog_product_backlog_reporterTousers product_backlog[] @relation("product_backlog_reporterTousers")
-  product_owner                                   product_owner?
-  session                                         session[]
-  notification                                    notification[]
+  user_id       Int            @id @default(autoincrement())
+  username      String         @db.VarChar(255)
+  email         String         @db.VarChar(255)
+  password      String         @db.VarChar(255)
+  role          String
+  attendee      attendee[]
+  developer     developer?
+  product_owner product_owner?
+  session       session[]
+  notification  notification[]
 }
 
 model notification {

@@ -8,8 +8,8 @@ import { useLocation } from 'react-router-dom'
 
 export default function ProductBaclogs() {
     const location = useLocation();
-    const [user, setUser] = useState(null)
-    const [token, setToken] = useState(null)
+    const [user, setUser] = useState(localStorage.getItem('user'))
+    const [token, setToken] = useState(localStorage.getItem('token'))
     const [projectId, setProjectId] = useState(location.pathname.split('/')[2])
     const [backlog, setBacklog] = useState([])
     useEffect(() => {
@@ -21,9 +21,10 @@ export default function ProductBaclogs() {
             setProjectId(location.pathname.split('/')[2])
             console.log(projectId)
         }
-        // fetchBacklogs()
     }, [])
-
+    useEffect(() => {
+        fetchBacklogs()
+    }, [])
     const fetchBacklogs = async () => {
         try {
             const response = await fetch(`http://localhost:3000/api/backlog/${projectId}`, {
@@ -38,7 +39,7 @@ export default function ProductBaclogs() {
             }
             const backlogData = await response.json();
             console.log(backlogData);
-            setBacklog(backlogData.backlog);
+            setBacklog(backlogData.productBacklogs);
         }
         catch (error) {
             console.log(error)
@@ -73,11 +74,30 @@ export default function ProductBaclogs() {
         reporter: "None",
     })
 
+    const handleDelete = async()=>{
+        const response = await fetch('http://localhost:3000/api/backlog/delete',{
+            method:"DELETE",
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${token}`,
+            },
+            body:JSON.stringify({'backlogs':selectBacklog})
+            
+        }).then(res=>res.json())
+        .then(data=>{
+            console.log(data)
+            setBacklog([])
+            fetchBacklogs();
+        }).catch(err=>console.log(err))
+    }
+
     const handleOnBlur = async (mode) => {
+        console.log("handleOnBlur")
         if (mode == "backlog") {
             if (backlogData.title != "None" && backlogData.priority != "None" && backlogData.progress != "None") {
                 const projectId = location.pathname.split('/')[2]
                 try {
+                    console.log(backlogData)
                     const response = await fetch('http://localhost:3000/api/backlog/create', {
                         method: 'POST',
                         headers: {
@@ -99,8 +119,7 @@ export default function ProductBaclogs() {
                     }
                     const backlogs= await response.json();
                     console.log(backlogs);
-                    setBacklog(backlogs.updatedProductBacklog);
-
+                    fetchBacklogs()
                 }
                 catch (error) {
                     console.log(error)
@@ -189,9 +208,14 @@ export default function ProductBaclogs() {
 
                                     </div>
                                 </div>
+                                <div>
+                                    {selectBacklog?.length>0&&<button className='btn btn-sm btn-primary me-2' onClick={()=>{handleDelete()}}>
+                                        Delete 
+                                    </button>}
                                 <button className="btn btn-sm btn-primary">
                                     Start Sprint
                                 </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -282,8 +306,15 @@ export default function ProductBaclogs() {
                                         </select>
                                     </div>
                                     <div className="col">
-                                        <select className="form-select" aria-label="Default select example" onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))} >
-                                            <option value="to_do" selected>To-Do</option>
+                                        <select className="form-select" aria-label="Default select example" onSelect={
+                                            (e) => {
+                                                console.log(e.target.value)
+                                                setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))
+                                            }
+                                        }
+                                         onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))} >
+                                            <option value="to_do" selected>Select Status</option>
+                                            <option value="to_do" >To-Do</option>
                                             <option value="in_progress">In-Progress</option>
                                             <option value="done">Done</option>
                                         </select>

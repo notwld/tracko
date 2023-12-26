@@ -17,7 +17,7 @@ router.get("/:project_id", authorize, async (req, res) => {
   try {
     const productBacklogs = await prisma.product_backlog.findMany({
       where: {
-        project_id: project_id
+        project_id: parseInt(project_id)
       }
     })
     if (!productBacklogs) {
@@ -31,8 +31,97 @@ router.get("/:project_id", authorize, async (req, res) => {
 
 })
 
+router.delete("/delete", authorize, async (req, res) => {
+  const { backlogs } = req.body;
+
+  if (!backlogs) {
+    return res.status(404).json({ message: "Please provide backlogs to delete" });
+  }
+
+  try {
+    for (const backlog of backlogs) {
+      if (!backlog.task_id || !backlog.product_backlog_id) {
+        console.log("Invalid task_id or product_backlog_id for the current backlog:", backlog);
+        continue; // Skip to the next iteration if task_id or product_backlog_id is not valid
+      }
+      const taskToDelete = await prisma.task.findMany({
+        where: {
+            product_backlog_id: backlog.product_backlog_id,
+        }
+      })
+      if (!taskToDelete) {
+        console.log("Task does not exist for the current backlog:", backlog);
+        continue; // Skip to the next iteration if the task does not exist
+      }
+      
+
+      // Check and delete product_backlog
+      const productBacklogToDelete = await prisma.product_backlog.findUnique({
+        where: {
+          product_backlog_id: backlog.product_backlog_id,
+        },
+      });
+
+      if (!productBacklogToDelete) {
+        console.log("Product backlog does not exist for the current backlog:", backlog);
+        continue; // Skip to the next iteration if the product backlog does not exist
+      }
+      
+
+      await prisma.product_backlog.delete({
+        where: {
+          product_backlog_id: backlog.product_backlog_id,
+        },
+
+      });
+
+      console.log("Product backlog deleted for the current backlog:", backlog);
+      await prisma.task.deleteMany({
+        where: {
+          task_id: backlog.task_id,
+          product_backlog_id: backlog.product_backlog_id,
+        },
+      });
+
+      console.log("Task deleted for the current backlog:", backlog);
+      // Check and update project
+      const projectToUpdate = await prisma.project.findUnique({
+        where: {
+          project_id: backlog.project_id,
+        },
+      });
+
+      if (!projectToUpdate) {
+        console.log("Project does not exist for the current backlog:", backlog);
+        continue; // Skip to the next iteration if the project does not exist
+      }
+
+      await prisma.project.update({
+        where: {
+          project_id: backlog.project_id,
+        },
+        data:{
+          product_backlog_id: null
+        }
+      });
+
+      console.log("Project updated for the current backlog:", backlog);
+
+      // Add similar checks and deletion logic for other related entities as needed
+
+    }
+
+    return res.status(201).json({ message: "All given product backlogs have been deleted!" });
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({ message: "All given product backlogs have not been deleted!" });
+  }
+});
+
+
+
 router.post('/create', authorize, async (req, res) => {
-  
+  console.log(req.body)
   const { projectId, title, description, priority, progress } = req.body
   if (!projectId || !title || !description || !priority || !progress) {
     return res.status(400).json({ error: 'Please provide all required fields' });
@@ -45,7 +134,7 @@ router.post('/create', authorize, async (req, res) => {
         title,
         description,
         priority,
-      
+
       }
     })
     if (!newProductBacklog) {
@@ -53,10 +142,11 @@ router.post('/create', authorize, async (req, res) => {
     }
     const task = await prisma.task.create({
       data: {
-        status: progress
+        status: progress,
+        product_backlog_id: newProductBacklog.product_backlog_id
       }
     })
-    if  (!task) {
+    if (!task) {
       return res.status(404).json({ error: "No task found" })
     }
     const updatedProductBacklog = await prisma.product_backlog.update({
@@ -69,6 +159,17 @@ router.post('/create', authorize, async (req, res) => {
     })
     if (!updatedProductBacklog) {
       return res.status(404).json({ error: "No product backlog found" })
+    }
+    const updatedTask = await prisma.task.update({
+      where: {
+        task_id: task.task_id
+      },
+      data: {
+        product_backlog_id: newProductBacklog.product_backlog_id
+      }
+    })
+    if (!updatedTask) {
+      return res.status(404).json({ error: "No task found" })
     }
     // update project 
     const updatedProject = await prisma.project.update({
