@@ -17,7 +17,6 @@ import Project from './pages/Project.jsx'
 const routes = createBrowserRouter([
   {
     path: "/",
-    errorElement: <div className='container vw-100 vh-100'>Error</div>,
     element: <App />,
     children:[
       {

@@ -21,6 +21,7 @@ import { AntDesign } from '@expo/vector-icons';
 import colors from '../colors';
 import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
+import * as Permissions from 'expo-permissions';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { backlogs } from '../utils/backlogHook';
 import { BackHandler } from 'react-native';
@@ -55,12 +56,11 @@ export default function Chat(props) {
 
   const route = useRoute();
   useEffect(() => {
-    const { status } = Audio.requestPermissionsAsync();
-    setPermissions(status);
-    BackHandler.addEventListener('hardwareBackPress', () => true);
-
+    (async () => {
+      const { status } = await Permissions.askAsync(Permissions.AUDIO_RECORDING);
+      setPermissions(status === 'granted');
+    })();
   }, []);
-
   const onSignOut = () => {
     signOut(auth).catch(error => console.log('Error logging out: ', error));
   };
@@ -197,9 +197,7 @@ export default function Chat(props) {
               }}
               >
                 <Text>
-                  {
-                    currentMessage._id && isPlaying ? <Text>Stop</Text> : <Text>Play</Text>
-                  }
+                  Play
                 </Text>
               </TouchableOpacity>
             </View> : <Text>
@@ -233,14 +231,9 @@ export default function Chat(props) {
     }
 }
 
-
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ display: 'flex', flexDirection: 'row',
-      backgroundColor: '#fff',
-      paddingVertical: 10,
-      borderBottomWidth: 1,
-      justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
         <TouchableOpacity style={style.btn} onPress={() => handleRevote()}>
           <Text style={{ color: "white" }}>Re-Vote</Text>
         </TouchableOpacity>
@@ -272,7 +265,7 @@ export default function Chat(props) {
               flexDirection: 'row',
               alignItems: 'center',
               justifyContent: 'center',
-              marginRight: 10,
+              marginRight: 10
             }}
           >
             <TouchableOpacity
@@ -384,11 +377,11 @@ export default function Chat(props) {
 
 const style = StyleSheet.create({
   btn: {
-    backgroundColor: "rgb(0, 82, 204)",
+    backgroundColor: colors.primary,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    // shadowColor: colors.primary,
+    shadowColor: colors.primary,
     shadowOffset: {
       width: 0,
       height: 2,

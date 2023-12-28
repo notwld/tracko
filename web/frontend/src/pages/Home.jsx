@@ -58,9 +58,10 @@ export default function Home() {
       })
   }
   useEffect(() => {
-    localStorage.removeItem('project');
+    
     const user = localStorage.getItem('user');
     if (user) {
+      localStorage.removeItem('project');
       setUser(JSON.parse(user));
       const authToken = localStorage.getItem('token');
       const userType = localStorage.getItem('userType');
@@ -69,6 +70,9 @@ export default function Home() {
       fetchProjects();
       fetchNotifications();
 
+    }
+    else{
+      window.location.href="/login"
     }
   }, [fetchProjects]);
 
