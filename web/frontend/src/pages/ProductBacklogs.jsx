@@ -3,11 +3,13 @@ import "../stylesheets/product_backlog.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboard } from "@fortawesome/free-regular-svg-icons"
 import { faPencil } from '@fortawesome/free-solid-svg-icons'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
+import baseUrl from "../config/baseUrl"
 
 
 export default function ProductBaclogs() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [user, setUser] = useState(localStorage.getItem('user'))
     const [token, setToken] = useState(localStorage.getItem('token'))
     const [projectId, setProjectId] = useState(location.pathname.split('/')[2])
@@ -21,13 +23,16 @@ export default function ProductBaclogs() {
             setProjectId(location.pathname.split('/')[2])
             console.log(projectId)
         }
+        else{
+            window.location.href='/login'
+        }
     }, [])
     useEffect(() => {
         fetchBacklogs()
     }, [])
     const fetchBacklogs = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/backlog/${projectId}`, {
+            const response = await fetch(baseUrl+`/api/backlog/${projectId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': "application/json",
@@ -75,7 +80,7 @@ export default function ProductBaclogs() {
     })
 
     const handleDelete = async()=>{
-        const response = await fetch('http://localhost:3000/api/backlog/delete',{
+        const response = await fetch(baseUrl+'/api/backlog/delete',{
             method:"DELETE",
             headers: {
                 'Content-Type': 'application/json',
@@ -98,7 +103,7 @@ export default function ProductBaclogs() {
                 const projectId = location.pathname.split('/')[2]
                 try {
                     console.log(backlogData)
-                    const response = await fetch('http://localhost:3000/api/backlog/create', {
+                    const response = await fetch(baseUrl+'/api/backlog/create', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -208,13 +213,21 @@ export default function ProductBaclogs() {
 
                                     </div>
                                 </div>
-                                <div>
-                                    {selectBacklog?.length>0&&<button className='btn btn-sm btn-primary me-2' onClick={()=>{handleDelete()}}>
+                                <div className='d-flex justify-content-center align-items-center ' style={{width:'fit-content'}}>
+                                   <div className="col">
+                                   {(selectBacklog?.length>0)&&<button className='btn btn-sm btn-primary me-2' onClick={()=>{handleDelete()}}>
                                         Delete 
                                     </button>}
-                                <button className="btn btn-sm btn-primary">
+                                   </div>
+                                      
+                                        {backlog?.length > 0 && user.role==="Product Owner" && <button className="btn btn-sm btn-primary" onClick={() => { navigate(`/project/${projectId}/poker-planning`) }}>
+                                            Initiate Poker Planning
+                                        </button>}
+                                      
+                                <button className="btn mx-2 btn-sm btn-primary">
                                     Start Sprint
                                 </button>
+                               
                                 </div>
                             </div>
                         </div>
@@ -341,11 +354,19 @@ export default function ProductBaclogs() {
                                         onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, description: e.target.value }))}
                                     ></textarea>
                                 </div>
-                                <div className="row d-flex justify-content-center align-items-center w-50">
+                                <div className="row d-flex justify-content-center align-items-center" style={{width:"fit-content"}}>
 
+                                    <div className="col">
                                     <button className="btn btn-sm btn-primary" onClick={() => { handleOnBlur("backlog") }}>
                                         Create
                                     </button>
+                                    </div>
+                                    {/* // cancel  */}
+                                    <div className="col">
+                                    <button className="btn btn-sm btn-danger" onClick={() => { handleOnBlur("backlog") }}>
+                                        Cancel
+                                    </button>
+                                    </div>
                                 </div>
                             </div>
                         ) : <span className='py-4 px-3' id='create_issue' onClick={() => {

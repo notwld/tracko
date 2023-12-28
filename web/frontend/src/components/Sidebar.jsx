@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import '../stylesheets/nav.css';
+import baseUrl from "../config/baseUrl"
 
 export default function Sidebar() {
   const location = useLocation();

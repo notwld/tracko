@@ -1,24 +1,7 @@
 
 
 
-let backlogs = [
-    {
-        backlogId: 1,
-        storyPoint: 0,
-        backLog: "As a User I want to do something"
-    },
-    {
-        backlogId: 2,
-        storyPoint: 0,
-        backLog: "As a Admin I want to do something"
-    },
-    {
-        backlogId: 3,
-        storyPoint: 0,
-        backLog: "As a Dev I want to do something"
-    },
-
-]
+let backlogs
 
 
 const updateStoryPoint = (point, backlogId) => {

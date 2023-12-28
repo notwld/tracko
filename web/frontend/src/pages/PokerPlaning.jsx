@@ -1,6 +1,16 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { auth, database, app } from '../config/firebase';
+import { getStorage, ref } from 'firebase/storage';
+import { orderBy, query, collection, onSnapshot, addDoc } from 'firebase/firestore';
+import baseUrl from "../config/baseUrl"
 
 export default function PokerPlaning() {
+    const [user, setUser] = useState(localStorage.getItem('user'))
+    const [project, setProject] = useState(localStorage.getItem('project'))
+    const [token, setToken] = useState(localStorage.getItem('token'))
+    const [session, setSession] = useState(false);
+    const [messages, setMessages] = useState([])
+    const [formValue, setFormValue] = useState('');
     const [team, setTeam] = useState([
         {
             name: 'Muhammad Waleed',
@@ -24,6 +34,100 @@ export default function PokerPlaning() {
         }
 
     ])
+    const [code, setCode] = useState('')
+    useEffect(() => {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const authToken = localStorage.getItem('token');
+            const project = localStorage.getItem('project');
+            setProject(JSON.parse(project))
+            setToken(authToken)
+            setUser(JSON.parse(user));
+            console.log(project)
+        }
+        else {
+            window.location.href = '/login'
+        }
+    }, [])
+    const handleSessionStart = async () => {
+        try {
+            console.log(project.project_id)
+            const response = await fetch(baseUrl+`/api/poker-planning/invite`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': "application/json",
+                    'Authorization': `${token}`,
+                },
+                body: JSON.stringify({
+                    'projectId': project.project_id,
+
+                })
+            })
+            if (!response.ok) {
+                console.log(await response.json())
+            }
+            const code = await response.json();
+            console.log(code);
+            setCode(code)
+            setSession(true)
+        }
+        catch (error) {
+            console.log(error)
+        }
+    }
+    useEffect(() => {
+        // fetch messages from firebase collection name chat
+        const collectionRef = collection(database, 'chats');
+        const q = query(collectionRef, orderBy('createdAt', 'desc'));
+
+        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const messages = [];
+            querySnapshot.forEach((doc) => {
+                messages.push({
+                    _id: doc.data()._id,
+                    createdAt: doc.data().createdAt.toDate(),
+                    text: doc.data().text,
+                    user: doc.data().user._id.split('@')[0],
+                });
+            });
+            // reverse the array to show the latest messages first
+            setMessages(messages.reverse());
+        }
+        );
+        return () => unsubscribe();
+    }, [])
+    const sendMessage = async (e) => {
+        e.preventDefault();
+    
+        // Check if user is defined and has necessary properties
+        if (!user || !user.id || !user.name) {
+            console.error("Invalid user object");
+            return;
+        }
+    
+        const uid = user.id;
+        const name = user.name;
+        const photoURL = "";
+        const createdAt = new Date();
+    
+        try {
+            // Ensure that the data being added does not contain undefined values
+            const messageData = {
+                _id: user.email || "", // Use a default value if user.email is undefined
+                createdAt,
+                text: formValue || "", // Use a default value if formValue is undefined
+                username: name || "", // Use a default value if name is undefined
+                photoURL,
+            };
+    
+            addDoc(collection(database, 'chats'), messageData);
+            setFormValue('');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    
+
     const [selectedTeam, setSelectedTeam] = useState([])
     return (
         <div className='container my-0 px-0 ps-4' >
@@ -48,8 +152,8 @@ export default function PokerPlaning() {
                             </h1>
                         </div>
                         <div className="btns">
-                            <button className="btn btn-sm btn-primary" onClick={()=>{
-                                alert('Session Started')
+                            <button className=" btn btn-sm btn-primary" onClick={() => {
+                                handleSessionStart()
                             }}>
                                 Start Session
                             </button>
@@ -59,24 +163,54 @@ export default function PokerPlaning() {
                 </div>
             </div>
             <div className="row">
+
                 <div className="col">
                     <select className="form-select" aria-label="Default select example">
                         <option selected>Select Sizing Technique</option>
                         <option value="1">Fibonacci</option>
-                        <option value="2">T-Shirt</option>
-                        <option value="3">T-Shirt</option>
-                    </select>
-                </div>
-                <div className="col">
-                    <select className="form-select" aria-label="Default select example">
-                        <option selected>Select Sizing Technique</option>
-                        <option value="1">Fibonacci</option>
-                        
+
                     </select>
                 </div>
 
             </div>
-            <div className="row mt-4 ms-1">
+            <div className="row mt-3">
+                {code && <div className="col">
+                    <p className='lead'>
+                        Invite Code: {code.inviteCode}
+                    </p>
+                </div>}
+            </div>
+            {session && <div className='row'>
+                <div className="col">
+                    <div className="card">
+                        <div className="card-body">
+                            {
+                                messages.map(msg => (
+                                    <div key={msg._id}>
+                                        <div className="d-flex justify-content-start align-items-center my-3">
+                                            <div className="d-flex justify-content-center align-items-center" style={{ width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#e9ecef" }}>
+                                                <i className="bi bi-person-fill" style={{ fontSize: "1.5rem" }}></i>
+                                            </div>
+                                            <div className="ms-2">
+                                                <span>
+                                                    {msg.user}
+                                                </span>
+                                                <p className="card-text">{msg.text}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+                            <div className="input-group mb-3">
+                                <input type="text" className="form-control" placeholder="Enter message" aria-label="Recipient's username" aria-describedby="button-addon2" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+                                <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={sendMessage}>Send</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>}
+            {/* <div className="row mt-4 ms-1">
                 <table className="table">
                     <tbody>
                         {
@@ -122,7 +256,7 @@ export default function PokerPlaning() {
                         </div>
                     ))
                 }
-            </div>
+            </div> */}
         </div>
     )
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import baseUrl from "../config/baseUrl"
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -16,7 +17,7 @@ export default function Home() {
 
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/project/list', {
+      const response = await fetch(baseUrl+'/api/project/list', {
         method: 'POST',
         headers: {
           'Content-Type': "application/json",
@@ -39,7 +40,7 @@ export default function Home() {
     }
   }, [token]);
   const fetchNotifications = async () => {
-    fetch('http://localhost:3000/api/notifications/list', {
+    fetch(baseUrl+'/api/notifications/list', {
       method: 'POST',
       headers: {
         'Content-Type': "application/json",
@@ -61,7 +62,7 @@ export default function Home() {
     
     const user = localStorage.getItem('user');
     if (user) {
-      localStorage.removeItem('project');
+      // localStorage.removeItem('project');
       setUser(JSON.parse(user));
       const authToken = localStorage.getItem('token');
       const userType = localStorage.getItem('userType');
@@ -79,7 +80,7 @@ export default function Home() {
   const handleInvitationAccept = async (invitation) => {
     console.log(invitation[0])
     try {
-      const response = await fetch('http://localhost:3000/api/team/add', {
+      const response = await fetch(baseUrl+'/api/team/add', {
         method: 'POST',
         headers: {
           'Content-Type': "application/json",
@@ -109,7 +110,7 @@ export default function Home() {
 
   const handleCreateProject = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/project/create', {
+      const response = await fetch(baseUrl+'/api/project/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

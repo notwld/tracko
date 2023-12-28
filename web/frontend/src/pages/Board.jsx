@@ -2,6 +2,8 @@ import React from 'react'
 import "../stylesheets/board.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock } from '@fortawesome/free-regular-svg-icons'
+import baseUrl from "../config/baseUrl"
+
 export default function Board() {
     const [user, setUser] = React.useState(null)
     React.useEffect(() => {

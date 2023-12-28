@@ -1,8 +1,8 @@
 from flask import Flask, request, render_template, jsonify
-
+import requests
 import secrets
 from flask_cors import CORS
-
+import json
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -16,15 +16,15 @@ def generate_room_code():
 
 code = generate_room_code()
 print(code)
-@app.route('/connect', methods=['POST'])
+@app.route('/code', methods=['POST'])
 def connect():
     invite_code = request.json.get('code')
-    print(invite_code)
-    if invite_code is None:
-        return 'No invite code provided', 400
-    if invite_code==code:
-        print("connected")
-        return jsonify({'success': True}), 200
+    email = request.json.get('email')
+    req = requests.post('http://localhost:19001/api/poker-planning/join', json={'code': invite_code, 'email': email})
+    if req.status_code == 200:
+        res = json.loads(req.content)
+        
+        return jsonify({'success': True, 'data': res}), 200
     return jsonify({'success': False}), 200
 
 @app.route('/backlogs', methods=['GET'])
@@ -53,4 +53,4 @@ def backlogs():
 
 ], 200
 if __name__ == '__main__':
-    app.run(debug=True,host="192.168.1.104",port="19001")
+    app.run(debug=True,host="192.168.1.106",port="19002")

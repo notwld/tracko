@@ -1,4 +1,6 @@
 import React from 'react'
+import baseUrl from "../config/baseUrl"
+
 let fakeInterrupt = [
     {
         name: "Sick Leave",

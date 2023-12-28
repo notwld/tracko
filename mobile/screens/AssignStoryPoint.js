@@ -13,8 +13,9 @@ import { BackHandler } from 'react-native';
 
 export default function AssignStoryPoints({ route, navigation }) {
   const { backlog } = route.params;
+  const {backlogs} = route.params;
   const { revote } = route.params;
-  const { backlogId, storyPoint, backLog } = backlog;
+  const { product_backlog_id, title } = backlog;
 
   const items = [1, 2, 3, 5, 7, 9, 11];
   const [selectedStoryPoint, setSelectedStoryPoint] = useState(null);
@@ -45,8 +46,8 @@ export default function AssignStoryPoints({ route, navigation }) {
     
     if (!revote) {
       addDoc(storypointsCollection, {
-        backlogId,
-        backLog,
+        product_backlog_id,
+        title,
         storyPoint: selectedStoryPoint,
         assignedBy: auth.currentUser.email.split('@')[0].toString(),
       })
@@ -69,15 +70,15 @@ export default function AssignStoryPoints({ route, navigation }) {
         });
 
     }
-    navigation.navigate("CardReveal", { backlog: backlog, docId: documentId });
+    navigation.navigate("CardReveal", { backlog: backlog, docId: documentId,backlogs:backlogs });
   }
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <View style={styles.content}>
-          <Text style={styles.new}>{backLog}</Text>
+          <Text style={styles.new}>{title}</Text>
           <View style={styles.itemsContainer}>{renderItems()}</View>
-          <TouchableOpacity style={styles.btn} onPress={() => handleReveal()} disabled={storyPoint == null}>
+          <TouchableOpacity style={styles.btn} onPress={() => handleReveal()} disabled={selectedStoryPoint == null}>
             <Text style={{ color: 'white', fontWeight: 'bold', textAlign: 'center', fontSize: 20 }}>Reveal your Card</Text>
           </TouchableOpacity>
 

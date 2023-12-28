@@ -7,7 +7,9 @@ import { BackHandler } from 'react-native';
 
 const CardReveal = ({ route }) => {
     const { backlog } = route.params;
-    const { backLog, backlogId, storyPoint } = backlog;
+    const { backlogs } = route.params;
+    console.log(backlogs);
+    const { title, product_backlog_id } = backlog;
     const [selectedStoryPoints, setSelectedStoryPoints] = useState([]);
     const [maxStoryPoint, setMaxStoryPoint] = useState(null);
     const [maxFrequency, setMaxFrequency] = useState(0);
@@ -23,7 +25,7 @@ const CardReveal = ({ route }) => {
 
             const frequencyMap = {};
             points.forEach(item => {
-                if(item.backlogId === backlogId){ // ye check krega k screen me jo backlog hai usi k story points show honge
+                if(item.product_backlog_id === product_backlog_id){ // ye check krega k screen me jo backlog hai usi k story points show honge
                     const point = item.storyPoint;
                     frequencyMap[point] = (frequencyMap[point] || 0) + 1;
                 }
@@ -41,7 +43,7 @@ const CardReveal = ({ route }) => {
     }, []);
 
     const renderCard = ({ item }) => (
-        item.backlogId === backlogId && (
+        item.product_backlog_id === product_backlog_id && (
             <View style={stylesheet.card}>
                 <Text style={{ textAlign: "center" }}>{item.assignedBy} selected {item.storyPoint}</Text>
             </View>
@@ -56,7 +58,7 @@ const CardReveal = ({ route }) => {
                 flex: 1,
             }
         }>
-            <Text style={stylesheet.backlog}>{backLog}</Text>
+            <Text style={stylesheet.backlog}>{title}</Text>
             <Text style={{
                 textAlign: 'center',
                 marginVertical: 2,
@@ -70,7 +72,7 @@ const CardReveal = ({ route }) => {
                 numColumns={3}
                 contentContainerStyle={stylesheet.cardContainer}
             />
-            <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog })}>
+            <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog ,backlogs:backlogs })}>
                 <Text style={{ fontWeight: 'bold', textAlign: 'center',color:"white", fontSize: 15 }}>Move to Discussion</Text>
             </TouchableOpacity>
         </View>

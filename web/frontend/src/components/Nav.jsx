@@ -2,6 +2,7 @@ import { Link } from "react-router-dom"
 import "../stylesheets/nav.css"
 import { useState, useEffect } from "react"
 import logo from "../assets/logo.png"
+import baseUrl from "../config/baseUrl"
 export default function Nav() {
     const [user, setUser] = useState(null)
     const [userType, setUserType] = useState(null)

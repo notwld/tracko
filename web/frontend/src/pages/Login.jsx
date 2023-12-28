@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import logo from '../assets/logo.png'
 import { Link, Navigate } from 'react-router-dom'
+import baseUrl from "../config/baseUrl"
+
 export default function Login() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -8,7 +10,7 @@ export default function Login() {
 
     const handleLogin = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/auth/login', {
+            const response = await fetch(baseUrl+'/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

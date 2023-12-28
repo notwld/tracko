@@ -23,13 +23,14 @@ import { Audio } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
 import * as Permissions from 'expo-permissions';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { backlogs } from '../utils/backlogHook';
 import { BackHandler } from 'react-native';
 
 
 export default function Chat(props) {
   const backlog = props.route.params.backlog;
-  console.log(backlog);
+  const backlogs = props.route.params.backlogs;
+  console.log(backlogs);
+  // console.log(backlog);
 
   // useEffect(()=>{
 
@@ -115,7 +116,7 @@ export default function Chat(props) {
         createdAt,
         audio: messages[0].user.downloadURL,
         user,
-
+        username: auth?.currentUser?.email.split('@')[0]
       });
 
       return
@@ -211,25 +212,31 @@ export default function Chat(props) {
 
   const handleRevote = () => {
     console.log(backlog);
-    navigation.navigate('AssignStoryPoints', { backlog,revote:true });
+    navigation.navigate('AssignStoryPoints', { backlog,revote:true ,backlogs:backlogs});
   }
 
   const handleNext = () => {
-    const currentIndex = backlogs.findIndex((item) => item.backlogId === backlog.backlogId);
-    const currentIndexInArray = backlogs.findIndex((item) => item.backlogId === backlogs[currentIndex].backlogId);
+    console.log(backlogs);
+    const currentIndex = backlogs.findIndex((item) => item.product_backlog_id === backlog.product_backlog_id);
 
-    const nextIndex = currentIndexInArray + 1;
+    if (currentIndex !== -1) {
+        const currentIndexInArray = backlogs.findIndex((item) => item.product_backlog_id === backlogs[currentIndex].product_backlog_id);
 
-    if (nextIndex < backlogs.length) {
-      const nextElement = backlogs[nextIndex];
-      console.log(nextElement);
-      navigation.navigate('AssignStoryPoints', { backlog: nextElement });
+        const nextIndex = currentIndexInArray + 1;
 
+        if (nextIndex < backlogs.length) {
+            const nextElement = backlogs[nextIndex];
+            console.log(nextElement);
+            navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs });
+        } else {
+            console.log("No next element");
+            navigation.navigate('FinishScreen');
+        }
     } else {
-      console.log("No next element");
-      navigation.navigate('FinishScreen');
+        console.log("Current backlog not found in array");
     }
-}
+};
+
 
   return (
     <View style={{ flex: 1 }}>

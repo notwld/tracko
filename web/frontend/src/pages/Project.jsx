@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import baseUrl from "../config/baseUrl"
 
 export default function Project() {
     const location = useLocation();
@@ -32,7 +33,7 @@ export default function Project() {
     // }
     const fetchTeam = async () => {
         try {
-            const response = await fetch(`http://localhost:3000/api/team/${project.project_id}`, {
+            const response = await fetch(baseUrl+`/api/team/${project.project_id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': "application/json",
@@ -73,7 +74,7 @@ export default function Project() {
             if (email === "") {
                 alert("Please enter a valid email")
             }
-            await fetch(`http://localhost:3000/api/team/invite`, {
+            await fetch(baseUrl+`/api/team/invite`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
