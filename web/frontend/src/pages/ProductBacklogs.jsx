@@ -5,7 +5,8 @@ import { faClipboard } from "@fortawesome/free-regular-svg-icons"
 import { faPencil } from '@fortawesome/free-solid-svg-icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import baseUrl from "../config/baseUrl"
-
+import { addDoc, collection, doc, updateDoc, onSnapshot, query, where, getDocs, getDoc, deleteDoc } from "firebase/firestore";
+import { auth, database, app } from '../config/firebase';
 
 export default function ProductBaclogs() {
     const location = useLocation();
@@ -23,8 +24,8 @@ export default function ProductBaclogs() {
             setProjectId(location.pathname.split('/')[2])
             console.log(projectId)
         }
-        else{
-            window.location.href='/login'
+        else {
+            window.location.href = '/login'
         }
     }, [])
     useEffect(() => {
@@ -32,7 +33,7 @@ export default function ProductBaclogs() {
     }, [])
     const fetchBacklogs = async () => {
         try {
-            const response = await fetch(baseUrl+`/api/backlog/${projectId}`, {
+            const response = await fetch(baseUrl + `/api/backlog/${projectId}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': "application/json",
@@ -79,21 +80,21 @@ export default function ProductBaclogs() {
         reporter: "None",
     })
 
-    const handleDelete = async()=>{
-        const response = await fetch(baseUrl+'/api/backlog/delete',{
-            method:"DELETE",
+    const handleDelete = async () => {
+        const response = await fetch(baseUrl + '/api/backlog/delete', {
+            method: "DELETE",
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `${token}`,
             },
-            body:JSON.stringify({'backlogs':selectBacklog})
-            
-        }).then(res=>res.json())
-        .then(data=>{
-            console.log(data)
-            setBacklog([])
-            fetchBacklogs();
-        }).catch(err=>console.log(err))
+            body: JSON.stringify({ 'backlogs': selectBacklog })
+
+        }).then(res => res.json())
+            .then(data => {
+                console.log(data)
+                setBacklog([])
+                fetchBacklogs();
+            }).catch(err => console.log(err))
     }
 
     const handleOnBlur = async (mode) => {
@@ -103,7 +104,7 @@ export default function ProductBaclogs() {
                 const projectId = location.pathname.split('/')[2]
                 try {
                     console.log(backlogData)
-                    const response = await fetch(baseUrl+'/api/backlog/create', {
+                    const response = await fetch(baseUrl + '/api/backlog/create', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -122,7 +123,7 @@ export default function ProductBaclogs() {
                         console.error(errorData); // Log the error data
                         return;
                     }
-                    const backlogs= await response.json();
+                    const backlogs = await response.json();
                     console.log(backlogs);
                     fetchBacklogs()
                 }
@@ -159,14 +160,45 @@ export default function ProductBaclogs() {
         // setInputEvent((prev) => [{ id: 1, backlogInput: false }]);
         // console.log(inputEvent)
     }
-
+    const [maxStoryPoint, setMaxStoryPoint] = useState(null);
+    const [maxFrequency, setMaxFrequency] = useState(0);
     const handleMenuShow = (item) => {
+        console.log(item)
+        const storyPointsRef = collection(database, 'storypoints');
+        const q = query(storyPointsRef, where("product_backlog_id", "==", item.product_backlog_id));
+        const querySnapshot = onSnapshot(q, (querySnapshot) => {
+            const storyPoints = [];
+            querySnapshot.forEach((doc) => {
+                storyPoints.push({ ...doc.data(), id: doc.id });
+            });
+            console.log(storyPoints);
+            const storyPointFrequency = {};
+            storyPoints.forEach((storyPoint) => {
+                if (storyPointFrequency[storyPoint.storyPoint]) {
+                    storyPointFrequency[storyPoint.storyPoint] += 1;
+                } else {
+                    storyPointFrequency[storyPoint.storyPoint] = 1;
+                }
+            }
+            );
+            console.log(storyPointFrequency);
+            let maxFrequency = 0;
+            let maxStoryPoint = null;
+            for (const storyPoint in storyPointFrequency) {
+                if (storyPointFrequency[storyPoint] > maxFrequency) {
+                    maxFrequency = storyPointFrequency[storyPoint];
+                    maxStoryPoint = storyPoint;
+                }
+            }
+            console.log(maxStoryPoint);
+            setMenuData((prevMenuData) => ({
+                title: item.title,
+                description: item.description,
+                storyPoints: maxStoryPoint
+            }))
+        });
         setShow(true)
-        setMenuData({
-            title: item.title,
-            progress: item.progress,
-            assignedTo: item.assignedTo
-        })
+
 
     }
     const handlePencilIconClick = () => {
@@ -213,21 +245,21 @@ export default function ProductBaclogs() {
 
                                     </div>
                                 </div>
-                                <div className='d-flex justify-content-center align-items-center ' style={{width:'fit-content'}}>
-                                   <div className="col">
-                                   {(selectBacklog?.length>0)&&<button className='btn btn-sm btn-primary me-2' onClick={()=>{handleDelete()}}>
-                                        Delete 
-                                    </button>}
-                                   </div>
-                                      
-                                        {backlog?.length > 0 && user.role==="Product Owner" && <button className="btn btn-sm btn-primary" onClick={() => { navigate(`/project/${projectId}/poker-planning`) }}>
-                                            Initiate Poker Planning
+                                <div className='d-flex justify-content-center align-items-center ' style={{ width: 'fit-content' }}>
+                                    <div className="col">
+                                        {(selectBacklog?.length > 0) && <button className='btn btn-sm btn-primary me-2' onClick={() => { handleDelete() }}>
+                                            Delete
                                         </button>}
-                                      
-                                <button className="btn mx-2 btn-sm btn-primary">
-                                    Start Sprint
-                                </button>
-                               
+                                    </div>
+
+                                    {backlog?.length > 0 && user.role === "Product Owner" && <button className="btn btn-sm btn-primary" onClick={() => { navigate(`/project/${projectId}/poker-planning`) }}>
+                                        Initiate Poker Planning
+                                    </button>}
+
+                                    <button className="btn mx-2 btn-sm btn-primary">
+                                        Start Sprint
+                                    </button>
+
                                 </div>
                             </div>
                         </div>
@@ -325,7 +357,7 @@ export default function ProductBaclogs() {
                                                 setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))
                                             }
                                         }
-                                         onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))} >
+                                            onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, progress: e.target.value }))} >
                                             <option value="to_do" selected>Select Status</option>
                                             <option value="to_do" >To-Do</option>
                                             <option value="in_progress">In-Progress</option>
@@ -354,18 +386,18 @@ export default function ProductBaclogs() {
                                         onChange={(e) => setBacklogData((prevBacklogData) => ({ ...prevBacklogData, description: e.target.value }))}
                                     ></textarea>
                                 </div>
-                                <div className="row d-flex justify-content-center align-items-center" style={{width:"fit-content"}}>
+                                <div className="row d-flex justify-content-center align-items-center" style={{ width: "fit-content" }}>
 
                                     <div className="col">
-                                    <button className="btn btn-sm btn-primary" onClick={() => { handleOnBlur("backlog") }}>
-                                        Create
-                                    </button>
+                                        <button className="btn btn-sm btn-primary" onClick={() => { handleOnBlur("backlog") }}>
+                                            Create
+                                        </button>
                                     </div>
                                     {/* // cancel  */}
                                     <div className="col">
-                                    <button className="btn btn-sm btn-danger" onClick={() => { handleOnBlur("backlog") }}>
-                                        Cancel
-                                    </button>
+                                        <button className="btn btn-sm btn-danger" onClick={() => { handleOnBlur("backlog") }}>
+                                            Cancel
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -459,7 +491,7 @@ export default function ProductBaclogs() {
                                     </div>
                                     <div className="col">
                                         <span>
-                                            None
+                                            {menuData.storyPoints ? menuData.storyPoints: "-"}
                                         </span>
                                     </div>
                                 </div>

@@ -146,8 +146,8 @@ export default function Project() {
                             {
                                 projectSize?.length>0 && projectSize.map((size, i) => {
                                     return (
-                                        size.project_id === project.project_id && <p className="lead" key={i}>
-                                            EstimatedProject Size: {size.points}
+                                        size.project_id === project.project_id &&i==projectSize.length-1 && <p className="lead" key={i}>
+                                            Story Points: {size.points}
                                         </p>
                                             
                                     )

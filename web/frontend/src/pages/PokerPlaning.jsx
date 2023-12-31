@@ -5,8 +5,8 @@ import { orderBy, query, collection, onSnapshot, addDoc } from 'firebase/firesto
 import baseUrl from "../config/baseUrl"
 
 export default function PokerPlaning() {
-    const [user, setUser] = useState(localStorage.getItem('user'))
-    const [project, setProject] = useState(localStorage.getItem('project'))
+    const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')))
+    const [project, setProject] = useState(JSON.parse(localStorage.getItem('project')))
     const [token, setToken] = useState(localStorage.getItem('token'))
     const [session, setSession] = useState(false);
     const [messages, setMessages] = useState([])
@@ -77,11 +77,13 @@ export default function PokerPlaning() {
             console.log(error)
         }
     }
+
     useEffect(() => {
         const collectionRef = collection(database, 'chats');
         const q = onSnapshot(collectionRef, (querySnapshot) => {
             const messages = [];
             querySnapshot.forEach((doc) => {
+
                 messages.push({
                     _id: doc.data()._id,
                     createdAt: doc.data().createdAt.toDate(),
@@ -126,34 +128,34 @@ export default function PokerPlaning() {
     }, []);
     const sendMessage = async (e) => {
         e.preventDefault();
-
-        // Check if user is defined and has necessary properties
-        if (!user || !user.id || !user.name) {
-            console.error("Invalid user object");
-            return;
-        }
-
-        const uid = user.id;
-        const name = user.name;
-        const photoURL = "";
-        const createdAt = new Date();
-
+      
+      
         try {
-            // Ensure that the data being added does not contain undefined values
-            const messageData = {
-                _id: user.email || "", // Use a default value if user.email is undefined
-                createdAt,
-                text: formValue || "", // Use a default value if formValue is undefined
-                username: name || "", // Use a default value if name is undefined
-                photoURL,
-            };
-
-            addDoc(collection(database, 'chats'), messageData);
-            setFormValue('');
+          const createdAt = new Date();
+            console.log(user)
+          const messageData = {
+            _id: user.user_id, 
+            createdAt,
+            text: formValue,  
+            user: {
+              _id: user.email || "", 
+              avatar: 'https://i.pravatar.cc/300' 
+            },
+            username: user.username 
+          };
+          console.log(messageData);
+          addDoc(collection(database, 'chats'), messageData).then(() => {
+            console.log('Message sent');
+            }).catch((error) => {
+            console.log(error);
+            });
+      
+          setFormValue('');
         } catch (error) {
-            console.error(error);
+          console.error(error);
         }
-    };
+      };
+      
 
 
     const [selectedTeam, setSelectedTeam] = useState([])
@@ -219,22 +221,24 @@ export default function PokerPlaning() {
                     </div>
                 )}
             </div>
-                <div className="my-2">
+                <div className="row my-2">
                     {
                         storyPoints?.length > 0 && storyPoints.map((point, i) => (
-                            point?.product_backlog_id == current?.product_backlog_id && <div className="card my-2" key={i}>
-                                <div className="card-body">
+                            point?.product_backlog_id == current?.product_backlog_id && <div className="col" key={i}>
+                                <div className="card my-2" >
+                                <div className="card-body text-center">
                                     {point.assignedBy + " assigned story point " + point.storyPoint}
 
                                 </div>
+                            </div>
                             </div>
                         ))
                     }
                 </div></>}
             {session && <div className='row'>
                 <div className="col">
-                    <div className="card">
-                        <div className="card-body">
+                    <div className="card" style={{height:'70vh',overflow:"scroll"}}>
+                        <div className="card-body" >
                             {
                                 messages.map(msg => (
                                     <div key={msg._id} className='py-1 px-3 my-1' style={{ backgroundColor: "#e9ecef", width: "fit-content", borderRadius: "10px" }}>
@@ -255,23 +259,29 @@ export default function PokerPlaning() {
                                                     <p className="card-text">{msg.text}</p>
                                                 ) : (
                                                     <audio controls>
-                                                        <source src={msg.audio} type='video/3gpp; codecs="mp4v.20.8, samr"' />
+                                                        <source src={msg.audio} type='audio/3gpp' />
+                                                        <source src={msg.audio} type='audio/3gpp2' />
+                                                        <source src={msg.audio} type='audio/3gp2' />
                                                         Your browser does not support the audio element.
                                                     </audio>
+
                                                 )}
                                             </div>
                                         </div>
                                     </div>
                                 ))
                             }
-                            <div className="input-group mb-3">
-                                <input type="text" className="form-control" placeholder="Enter message" aria-label="Recipient's username" aria-describedby="button-addon2" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
-                                <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={sendMessage}>Send</button>
-                            </div>
+                            
 
                         </div>
                     </div>
                 </div>
+            </div>}
+            {session&&<div className="row">
+            <div className="input-group mb-3">
+                                <input type="text" className="form-control" placeholder="Enter message" aria-label="Recipient's username" aria-describedby="button-addon2" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+                                <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={sendMessage}>Send</button>
+                            </div>
             </div>}
             {/* <div className="row mt-4 ms-1">
                 <table className="table">

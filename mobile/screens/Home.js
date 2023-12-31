@@ -40,6 +40,7 @@ const Home = () => {
                 if (data.data.product_backlogs && data.data.project) {
                     const i = await data.data.product_backlogs
                     const j = await data.data.project
+                    const k = await data.data.user
                     // console.log(i);
 
         
@@ -48,12 +49,14 @@ const Home = () => {
                         backlog: i[0], 
                         backlogs: i,
                         project: j,
+                        user: k
                     });                    
                 } else {
                     Alert.alert("Invalid Code");
                 }
             } catch (err) {
                 console.log(err);
+                Alert.alert(err)
             }
         };
         

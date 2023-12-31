@@ -10,6 +10,7 @@ const CardReveal = ({ route }) => {
     const { backlogs } = route.params;
     const {currentDocumentId} = route.params;
     const {project} = route.params;
+    const {user} = route.params;
     // console.log(backlogs); 
     console.log(currentDocumentId);
     const { title, product_backlog_id } = backlog;
@@ -76,7 +77,7 @@ const CardReveal = ({ route }) => {
                 numColumns={3}
                 contentContainerStyle={stylesheet.cardContainer}
             />
-            <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog ,backlogs:backlogs,currentDocumentId:currentDocumentId, project:project})}>
+            <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog ,backlogs:backlogs,currentDocumentId:currentDocumentId, project:project, user:user})}>
                 <Text style={{ fontWeight: 'bold', textAlign: 'center',color:"white", fontSize: 15 }}>Move to Discussion</Text>
             </TouchableOpacity>
         </View>

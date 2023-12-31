@@ -7,6 +7,8 @@ const http = require('http')
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs/promises');
 
 const authRoutes = require('./apis/authentication.js');
 
@@ -30,6 +32,31 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false },
 }));
+
+app.use('/audio-proxy', async (req, res) => {
+    const { uri } = req.body;
+    const response = await fetch(uri);
+    console.log(uri);
+    if (!response.ok) {
+        res.status(500).json({ error: 'Failed to fetch audio' });
+        return;
+    }
+
+    const blob = await response.blob();
+    console.log(blob);
+    try {
+        const filePath = path.join(__dirname, 'assets', 'audio', `${Date.now()}.3gpp`); 
+        console.log(filePath);
+        await fs.writeFile(filePath, blob)
+        .then(() => {
+            console.log('File written successfully\n');
+        })
+
+        res.status(200).json({ success: true, filePath });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to save audio' });
+    }
+});
 
 app.use('/api/auth', authRoutes);
 app.use('/api/backlog', backLogs);

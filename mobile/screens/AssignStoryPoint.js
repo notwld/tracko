@@ -17,6 +17,7 @@ export default function AssignStoryPoints({ route, navigation }) {
   const { revote } = route.params;
   const { project } = route.params;
   const { product_backlog_id, title } = backlog;
+  const {user } = route.params;
 
   const items = [1, 2, 3, 5, 7, 9, 11];
   const [selectedStoryPoint, setSelectedStoryPoint] = useState(null);
@@ -68,7 +69,7 @@ export default function AssignStoryPoints({ route, navigation }) {
               console.log('Document written with ID: ', innerDocRef.id);
               setDocumentId(innerDocRef.id);
               console.log("Current Document ID: ", docRef.id, "Inner Document ID: ", innerDocRef.id);
-              navigation.navigate("CardReveal", { backlog: backlog, docId: innerDocRef.id, backlogs: backlogs, currentDocumentId: docRef.id, project: project });
+              navigation.navigate("CardReveal", { backlog: backlog, docId: innerDocRef.id, backlogs: backlogs, currentDocumentId: docRef.id, project: project , user: user});
             })
             .catch((error) => {
               console.error('Error writing document: ', error);
@@ -79,7 +80,7 @@ export default function AssignStoryPoints({ route, navigation }) {
           })
             .then(() => {
               console.log('Document successfully updated!');
-              navigation.navigate("CardReveal", { backlog: backlog, docId: documentId, backlogs: backlogs, currentDocumentId: docRef.id, project: project });
+              navigation.navigate("CardReveal", { backlog: backlog, docId: documentId, backlogs: backlogs, currentDocumentId: docRef.id, project: project, user: user });
             })
             .catch((error) => {
               console.error('Error updating document: ', error);

@@ -2,7 +2,7 @@ from flask import Flask, request, render_template, jsonify
 import requests
 import secrets
 from flask_cors import CORS
-import json
+import json,time
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -23,6 +23,22 @@ def connect():
     req = requests.post('http://127.0.0.1:19001/api/poker-planning/join', json={'code': invite_code, 'email': email})
     print(req.status_code)
     if req.status_code == 200:
+        res = json.loads(req.content)
+        print(res)
+        return jsonify({'success': True, 'data': res}), 200
+    return jsonify({'success': False}), 200
+
+@app.route('/update-estimates', methods=['POST'])
+def update():
+    # product_backlog_id, points,user_id
+    product_backlog_id = request.json.get('product_backlog_id')
+    points = request.json.get('point')
+    user_id = request.json.get('user_id')
+    print(product_backlog_id, points, user_id)
+    req = requests.post('http://127.0.0.1:19001/api/backlog/update-estimates', json={'product_backlog_id': product_backlog_id, 'points': points, 'user_id': user_id})
+    print(req)
+    if req.status_code == 200:
+        time.sleep(1)
         res = json.loads(req.content)
         print(res)
         return jsonify({'success': True, 'data': res}), 200

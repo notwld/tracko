@@ -189,7 +189,81 @@ router.post('/create', authorize, async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" })
   }
 });
+router.post('/update-estimates', async (req, res) => {
+  const {product_backlog_id, points,user_id} = req.body
+  // console.log(req.body)
+  if (!product_backlog_id || !points || !user_id) {
+    return res.status(400).json({ error: 'Please provide all required fields' });
+  }
+  //check if product backlog exists and its estimates is null
+  try {
+    const developer_id = await prisma.developer.findUnique({
+      where: {
+        users:{
+          user_id: parseInt(user_id)
+        }
+      }}).developer_id
+    if (!developer_id) {
+      return res.status(404).json({ error: "No developer found" })
+    }
+    const productBacklog = await prisma.product_backlog.findUnique({
+      where: {
+        product_backlog_id: parseInt(product_backlog_id)
+      }
+    })
+    if (!productBacklog) {
+      return res.status(404).json({ error: "No product backlog found" })
+    }
+    if (productBacklog.estimates_id) {
+      const estimates = await prisma.estimates.findUnique({
+        where: {
+          estimates_id: productBacklog.estimates_id
+        }
+      })
+      if (!estimates) {
+        return res.status(404).json({ error: "No estimates found" })
+      }
+      const updatedEstimates = await prisma.estimates.update({
+        where: {
+          estimates_id: productBacklog.estimates_id
+        },
+        data: {
+          story_points: points,
+          developer_id: parseInt(developer_id)
+        }
+      })
+      if (!updatedEstimates) {
+        return res.status(404).json({ error: "Error" })
+      }
+      res.status(200).json({ "message": "Estimates updated successfully", updatedEstimates })
+    }
+    const estimates = await prisma.estimates.create({
+      data: {
+        story_points: points,
+        developer_id: parseInt(developer_id)
+      }
+    })
+    if (!estimates) {
+      return res.status(404).json({ error: "No estimates found" })
+    }
+    const updatedProductBacklog = await prisma.product_backlog.update({
+      where: {
+        product_backlog_id: parseInt(product_backlog_id)
+      },
+      data: {
+        estimates_id: estimates.estimates_id
+      }
+    })
+    if (!updatedProductBacklog) {
+      return res.status(404).json({ error: "No product backlog found" })
+    }
+    res.status(200).json({ "message": "Estimates updated successfully", updatedProductBacklog })
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ error: "Internal Server Error" })
+  }
 
+})
 // router.get('/product-backlogs/:id', authorize, async (req, res) => {
 //   const backlogId = parseInt(req.params.id, 10);
 
