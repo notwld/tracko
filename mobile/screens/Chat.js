@@ -90,20 +90,26 @@ export default function Chat(props) {
   useLayoutEffect(() => {
 
     const collectionRef = collection(database, 'chats');
-    const q = query(collectionRef, orderBy('createdAt', 'desc'));
+        const q = onSnapshot(collectionRef, (querySnapshot) => {
+            const messages = [];
+            querySnapshot.forEach((doc) => {
 
-    const unsubscribe = onSnapshot(q, querySnapshot => {
-      console.log('querySnapshot unsusbscribe');
-      setMessages(
-        querySnapshot.docs.map(doc => ({
-          _id: doc.data()._id,
-          createdAt: doc.data().createdAt.toDate(),
-          text: doc.data().text,
-          user: doc.data().user
-        }))
-      );
-    });
-    return unsubscribe;
+                messages.push({
+                    _id: doc.data()._id,
+                    createdAt: doc.data().createdAt.toDate(),
+                    text: doc.data().text,
+                    user: doc.data().user,
+                    avatar: doc.data().user.avatar,
+                    downloadURL: doc.data().downloadURL
+                });
+            });
+            // sort messages by date, most recent will be last
+            setMessages(messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()));
+            console.log(messages);
+
+        });
+
+    return () => q();
   }, []);
 
 
@@ -113,14 +119,14 @@ export default function Chat(props) {
     setMessages(previousMessages =>
       GiftedChat.append(previousMessages, messages)
     );
-    if (messages[0].audio) {
+    if (messages[0].downloadURL) {
       const { _id, createdAt, text, user } = messages[0];
 
-      console.log('audio======', messages[0].user.downloadURL);
+      console.log('audio======', messages[0].downloadURL);
       addDoc(collection(database, 'chats'), {
         _id,
         createdAt,
-        audio: messages[0].user.downloadURL,
+        downloadURL: messages[0].downloadURL,
         user,
         username: auth?.currentUser?.email.split('@')[0]
       });
@@ -141,8 +147,9 @@ export default function Chat(props) {
   }, []);
 
   const renderMessage = props => {
+    // console.log(props);
     const { currentMessage } = props;
-    if (currentMessage.user.downloadURL) console.log(currentMessage.user.downloadURL, "audi==========");
+    if (currentMessage.downloadURL) console.log(currentMessage.downloadURL, "audi==========");
     return (
       <View
         style={{
@@ -168,7 +175,7 @@ export default function Chat(props) {
               <Text style={{ fontSize: 9, color: 'grey' }}>{currentMessage.createdAt.toLocaleTimeString()}</Text>
             </View>
 
-            <Text style={{ fontSize: 13 }}>{currentMessage.user.downloadURL ? <View>
+            <Text style={{ fontSize: 13 }}>{currentMessage.downloadURL ? <View>
               <TouchableOpacity onPress={async () => {
                 try {
                   if (isPlaying) {
@@ -186,9 +193,9 @@ export default function Chat(props) {
                     console.log('Playing audio..');
                     await Audio.requestPermissionsAsync()
 
-                    if (currentMessage.user.downloadURL) {
+                    if (currentMessage.downloadURL||currentMessage.downloadURL) {
                       const { sound } = await Audio.Sound.createAsync(
-                        { uri: currentMessage.user.downloadURL },
+                        { uri: currentMessage.downloadURL },
                         { shouldPlay: true }
                       );
                       setSound(sound);
@@ -357,11 +364,11 @@ export default function Chat(props) {
                         },
                         () => {
                           //play audio
-                          sound.playAsync();
+                          // sound.playAsync();
                           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                             console.log('File available at', downloadURL);
 
-                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(), audio: sound, user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300', downloadURL: downloadURL } }];
+                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(),  downloadURL: downloadURL.toString(), user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300' } }];
                             onSend(previousMessages);
 
                           });

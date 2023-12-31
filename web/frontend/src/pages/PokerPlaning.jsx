@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { auth, database, app } from '../config/firebase';
 import { getStorage, ref } from 'firebase/storage';
 import { orderBy, query, collection, onSnapshot, addDoc } from 'firebase/firestore';
+import { uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import baseUrl from "../config/baseUrl"
 
 export default function PokerPlaning() {
@@ -13,6 +14,11 @@ export default function PokerPlaning() {
     const [formValue, setFormValue] = useState('');
     const [current, setCurrent] = useState('')
     const [storyPoints, setStoryPoints] = useState([])
+    const [recording, setRecording] = useState(false);
+    const [audio, setAudio] = useState(null);
+    const [playing, setPlaying] = useState(false);
+    const [mediaRecorder, setMediaRecorder] = useState(null);
+
     const [team, setTeam] = useState([
         {
             name: 'Muhammad Waleed',
@@ -77,6 +83,91 @@ export default function PokerPlaning() {
             console.log(error)
         }
     }
+    const recordingHandler = (status) => {
+        if (status === 'start') {
+            startRecording();
+        } else if (status === 'stop') {
+            stopRecording();
+        }
+    };
+
+    const startRecording = () => {
+        setRecording(true);
+        const audioChunks = [];
+
+        navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+            const mediaRecorder = new MediaRecorder(stream);
+            setMediaRecorder(mediaRecorder);
+            mediaRecorder.start();
+
+            mediaRecorder.addEventListener('dataavailable', (event) => {
+                audioChunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', () => {
+                const audioBlob = new Blob(audioChunks);
+
+                const storage = getStorage(app);
+                const storageRef = ref(storage, `audios/${new Date().getTime()}.3gpp`);
+                const uploadTask = uploadBytesResumable(storageRef, audioBlob);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        console.log('Upload is ' + progress + '% done');
+                        switch (snapshot.state) {
+                            case 'paused':
+                                console.log('Upload is paused');
+                                break;
+                            case 'running':
+                                console.log('Upload is running');
+                                break;
+                        }
+                    },
+                    (error) => {
+                        console.log(error);
+                    },
+                    () => {
+                        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+                            console.log('File available at', downloadURL);
+                            const createdAt = new Date();
+                            const messageData = {
+                                _id: new Date().getTime(),
+                                createdAt,
+                                downloadURL: downloadURL,
+                                user: {
+                                    _id: user.email || "",
+                                    avatar: 'https://i.pravatar.cc/300',
+                                
+                                },
+                                username: user.username
+                            };
+                            console.log(messageData);
+                            addDoc(collection(database, 'chats'), messageData).then(() => {
+                                console.log('Message sent');
+                            }).catch((error) => {
+                                console.log(error);
+                            });
+                        });
+                    }
+                );
+            });
+        });
+    };
+
+    const stopRecording = () => {
+        setRecording(false);
+        setPlaying(false);
+        mediaRecorder.stop();
+    };
+
+    const playHandler = (uri) => {
+        console.log(uri)
+        const audio = new Audio(uri);
+        audio.play();
+    };
+
+
 
     useEffect(() => {
         const collectionRef = collection(database, 'chats');
@@ -90,11 +181,13 @@ export default function PokerPlaning() {
                     text: doc.data().text,
                     user: doc.data().user._id.split('@')[0],
                     avatar: doc.data().user.avatar,
-                    audio: doc.data().audio ? doc.data().audio : null,
+                    downloadURL: doc.data().downloadURL
                 });
             });
-            setMessages(messages.reverse());
+            // sort messages by date, most recent will be last
+            setMessages(messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()));
             console.log(messages);
+
         });
 
         const currentRef = collection(database, 'current');
@@ -128,38 +221,39 @@ export default function PokerPlaning() {
     }, []);
     const sendMessage = async (e) => {
         e.preventDefault();
-      
-      
+        if (!formValue) return;
+
+
         try {
-          const createdAt = new Date();
+            const createdAt = new Date();
             console.log(user)
-          const messageData = {
-            _id: user.user_id, 
-            createdAt,
-            text: formValue,  
-            user: {
-              _id: user.email || "", 
-              avatar: 'https://i.pravatar.cc/300' 
-            },
-            username: user.username 
-          };
-          console.log(messageData);
-          addDoc(collection(database, 'chats'), messageData).then(() => {
-            console.log('Message sent');
+            const messageData = {
+                _id: user.user_id,
+                createdAt,
+                text: formValue,
+                user: {
+                    _id: user.email || "",
+                    avatar: 'https://i.pravatar.cc/300'
+                },
+                username: user.username
+            };
+            console.log(messageData);
+            addDoc(collection(database, 'chats'), messageData).then(() => {
+                console.log('Message sent');
             }).catch((error) => {
-            console.log(error);
+                console.log(error);
             });
-      
-          setFormValue('');
+
+            setFormValue('');
         } catch (error) {
-          console.error(error);
+            console.error(error);
         }
-      };
-      
-      const handleSessionEnd = async () => {
-        fetch(baseUrl + `/api/poker-planning/reset`)    
+    };
+
+    const handleSessionEnd = async () => {
+        fetch(baseUrl + `/api/poker-planning/reset`)
         setSession(false);
-      }
+    }
 
     const [selectedTeam, setSelectedTeam] = useState([])
     return (
@@ -185,16 +279,16 @@ export default function PokerPlaning() {
                             </h1>
                         </div>
                         <div className="btns">
-                            {!session?<button className=" btn btn-sm btn-primary" onClick={() => {
+                            {!session ? <button className=" btn btn-sm btn-primary" onClick={() => {
                                 handleSessionStart()
                             }}>
                                 Start Session
-                            </button>:
-                            <button className=" btn btn-sm btn-danger" onClick={() => {
-                                handleSessionEnd()
-                            }}>
-                                End Session
-                            </button>
+                            </button> :
+                                <button className=" btn btn-sm btn-danger" onClick={() => {
+                                    handleSessionEnd()
+                                }}>
+                                    End Session
+                                </button>
                             }
                         </div>
                     </div>
@@ -235,18 +329,18 @@ export default function PokerPlaning() {
                         storyPoints?.length > 0 && storyPoints.map((point, i) => (
                             point?.product_backlog_id == current?.product_backlog_id && <div className="col" key={i}>
                                 <div className="card my-2" >
-                                <div className="card-body text-center">
-                                    {point.assignedBy + " assigned story point " + point.storyPoint}
+                                    <div className="card-body text-center">
+                                        {point.assignedBy + " assigned story point " + point.storyPoint}
 
+                                    </div>
                                 </div>
-                            </div>
                             </div>
                         ))
                     }
                 </div></>}
             {session && <div className='row'>
                 <div className="col">
-                    <div className="card" style={{height:'70vh',overflow:"scroll"}}>
+                    <div className="card" style={{ height: '70vh', overflow: "scroll" }}>
                         <div className="card-body" >
                             {
                                 messages.map(msg => (
@@ -267,12 +361,15 @@ export default function PokerPlaning() {
                                                 {msg.text ? (
                                                     <p className="card-text">{msg.text}</p>
                                                 ) : (
-                                                    <audio controls>
-                                                        <source src={msg.audio} type='audio/3gpp' />
-                                                        <source src={msg.audio} type='audio/3gpp2' />
-                                                        <source src={msg.audio} type='audio/3gp2' />
-                                                        Your browser does not support the audio element.
-                                                    </audio>
+                                                    // <audio controls onPlay={() => playHandler(msg.audio)} >
+                                                    //     <source src={msg.audio} type='audio/3gpp' />
+                                                    //     <source src={msg.audio} type='audio/3gpp2' />
+                                                    //     <source src={msg.audio} type='audio/3gp2' />
+                                                    //     Your browser does not support the audio element.
+                                                    // </audio>
+                                                    <button className="btn btn-sm btn-primary" onClick={() => playHandler(msg.downloadURL)} >
+                                                        {playing ? 'Stop' : 'Play'}
+                                                    </button>
 
                                                 )}
                                             </div>
@@ -280,17 +377,26 @@ export default function PokerPlaning() {
                                     </div>
                                 ))
                             }
-                            
+
 
                         </div>
                     </div>
                 </div>
             </div>}
-            {session&&<div className="row">
-            <div className="input-group mb-3">
-                                <input type="text" className="form-control" placeholder="Enter message" aria-label="Recipient's username" aria-describedby="button-addon2" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
-                                <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={sendMessage}>Send</button>
-                            </div>
+            {session && <div className="row">
+                <div className="input-group mb-3">
+                    <button
+                        className="btn btn-outline-secondary"
+                        type="button"
+                        id="button-addon1"
+                        onClick={() => recordingHandler(recording ? 'stop' : 'start')}
+                    >
+                        {recording ? 'Stop Recording' : 'Start Recording'}
+                    </button>
+
+                    <input type="text" className="form-control" placeholder="Enter message" aria-label="Recipient's username" aria-describedby="button-addon2" value={formValue} onChange={(e) => setFormValue(e.target.value)} />
+                    <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={sendMessage}>Send</button>
+                </div>
             </div>}
             {/* <div className="row mt-4 ms-1">
                 <table className="table">
