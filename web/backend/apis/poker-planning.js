@@ -65,9 +65,10 @@ router.post('/join', async (req, res) => {
 })
 
 // reset invite code, project id
-router.post('/reset', async (req, res) => {
+router.get('/reset', async (req, res) => {
     inviteCode = "";
     projId = "";
+    console.log("Invite code and project id reset");
     return res.status(200).json({message: "Invite code and project id reset"});
 })
 

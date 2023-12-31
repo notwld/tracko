@@ -156,7 +156,10 @@ export default function PokerPlaning() {
         }
       };
       
-
+      const handleSessionEnd = async () => {
+        fetch(baseUrl + `/api/poker-planning/reset`)    
+        setSession(false);
+      }
 
     const [selectedTeam, setSelectedTeam] = useState([])
     return (
@@ -182,11 +185,17 @@ export default function PokerPlaning() {
                             </h1>
                         </div>
                         <div className="btns">
-                            <button className=" btn btn-sm btn-primary" onClick={() => {
+                            {!session?<button className=" btn btn-sm btn-primary" onClick={() => {
                                 handleSessionStart()
                             }}>
                                 Start Session
+                            </button>:
+                            <button className=" btn btn-sm btn-danger" onClick={() => {
+                                handleSessionEnd()
+                            }}>
+                                End Session
                             </button>
+                            }
                         </div>
                     </div>
 
@@ -204,7 +213,7 @@ export default function PokerPlaning() {
 
             </div>
             <div className="row mt-3">
-                {code && <div className="col">
+                {code && session && <div className="col">
                     <p className='lead'>
                         Invite Code: {code.inviteCode}
                     </p>
