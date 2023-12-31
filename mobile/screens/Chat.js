@@ -34,6 +34,7 @@ export default function Chat(props) {
   const currentDocumentId = props.route.params.currentDocumentId;
   console.log(currentDocumentId);
   console.log(backlogs);
+  const project = props.route.params.project;
   // console.log(backlog);
 
   // useEffect(()=>{
@@ -224,7 +225,7 @@ export default function Chat(props) {
         ).catch((error) => {
           console.error("Error removing document: ", error);
         });
-    navigation.navigate('AssignStoryPoints', { backlog, revote: true, backlogs: backlogs });
+    navigation.navigate('AssignStoryPoints', { backlog, revote: true, backlogs: backlogs,project:project });
   }
 
   const handleNext = () => {
@@ -248,7 +249,7 @@ export default function Chat(props) {
         console.log(nextElement);
 
 
-        navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs });
+        navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs,project:project });
       } else {
         console.log("No next element");
         deleteDoc(doc(database, 'current', currentDocumentId))
@@ -259,7 +260,7 @@ export default function Chat(props) {
         ).catch((error) => {
           console.error("Error removing document: ", error);
         });
-        navigation.navigate('FinishScreen');
+        navigation.navigate('FinishScreen', {project:project});
       }
 
     } else {

@@ -20,15 +20,18 @@ export default function Nav() {
 
     }, []);
     const handleLogout = async () => {
+        // console.log(data)
+                    localStorage.removeItem('user')
+                    localStorage.removeItem('token')
+                    localStorage.removeItem('userType')
+                    window.location.href = '/login'
         try {
             await fetch('http://localhost:3000/api/auth/logout', {
-                method: 'POST',
+                method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    user
-                }),
+                
             })
                 .then(res => res.json())
                 .then(data => {

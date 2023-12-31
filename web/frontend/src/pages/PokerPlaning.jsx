@@ -88,6 +88,7 @@ export default function PokerPlaning() {
                     text: doc.data().text,
                     user: doc.data().user._id.split('@')[0],
                     avatar: doc.data().user.avatar,
+                    audio: doc.data().audio ? doc.data().audio : null,
                 });
             });
             setMessages(messages.reverse());
@@ -207,7 +208,7 @@ export default function PokerPlaning() {
                     </p>
                 </div>}
             </div>
-            {session &&<><div className="row my-2">
+            {session && <><div className="row my-2">
                 {current && (
                     <div className="col">
                         <div className="card">
@@ -218,34 +219,46 @@ export default function PokerPlaning() {
                     </div>
                 )}
             </div>
-            <div className="my-2">
-                {
-                    storyPoints?.length > 0 && storyPoints.map((point, i) => (
-                        point?.product_backlog_id == current?.product_backlog_id &&<div className="card my-2" key={i}>
-                            <div className="card-body">
-                                { point.assignedBy + " assigned story point " + point.storyPoint}
+                <div className="my-2">
+                    {
+                        storyPoints?.length > 0 && storyPoints.map((point, i) => (
+                            point?.product_backlog_id == current?.product_backlog_id && <div className="card my-2" key={i}>
+                                <div className="card-body">
+                                    {point.assignedBy + " assigned story point " + point.storyPoint}
 
+                                </div>
                             </div>
-                        </div>
-                    ))
-                }
-            </div></>}
+                        ))
+                    }
+                </div></>}
             {session && <div className='row'>
                 <div className="col">
                     <div className="card">
                         <div className="card-body">
                             {
                                 messages.map(msg => (
-                                    <div key={msg._id} className='py-1 px-3 my-1' style={{ backgroundColor: "#e9ecef",width:"fit-content",borderRadius:"10px" }}>
+                                    <div key={msg._id} className='py-1 px-3 my-1' style={{ backgroundColor: "#e9ecef", width: "fit-content", borderRadius: "10px" }}>
                                         <div className="d-flex justify-content-start align-items-center my-3">
                                             <div className="d-flex justify-content-center align-items-center" style={{ width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#e9ecef" }}>
                                                 <img src={msg.avatar} alt="" className="pe-2" style={{ borderRadius: "50%" }} width={40} />
                                             </div>
-                                            <div className="ms-2">
-                                                <span className='fw-bold'>
-                                                    {msg.user}
-                                                </span>
-                                                <p className="card-text">{msg.text}</p>
+                                            <div className="ms-2 d-flex flex-column">
+                                                <div>
+                                                    <span className='fw-bold'>
+                                                        {msg.user}
+                                                    </span>
+                                                    <span className="lead ms-3" style={{ fontSize: "13px" }}>
+                                                        {msg.createdAt.toString().split(' ')[4].split(':')[0] + ":" + msg.createdAt.toString().split(' ')[4].split(':')[1]}
+                                                    </span>
+                                                </div>
+                                                {msg.text ? (
+                                                    <p className="card-text">{msg.text}</p>
+                                                ) : (
+                                                    <audio controls>
+                                                        <source src={msg.audio} type='video/3gpp; codecs="mp4v.20.8, samr"' />
+                                                        Your browser does not support the audio element.
+                                                    </audio>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

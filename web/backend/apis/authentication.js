@@ -195,10 +195,10 @@ router.get('/profile', authorize, async (req, res) => {
   }
 });
 
-router.post('/logout', (req, res) => {
-  if (!req.session.user) {
-    return res.status(400).json({ error: 'User is not logged in' });
-  }
+router.get('/logout', (req, res) => {
+  // if (!req.session.user) {
+  //   return res.status(400).json({ error: 'User is not logged in' });
+  // }
   req.session.destroy();
   res.status(200).json({ message: 'Logout successful' });
 });

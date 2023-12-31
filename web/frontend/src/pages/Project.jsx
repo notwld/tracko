@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import baseUrl from "../config/baseUrl"
+import { collection, onSnapshot } from "firebase/firestore";
+import { database } from "../config/firebase";
+
 
 export default function Project() {
     const location = useLocation();
@@ -10,6 +13,7 @@ export default function Project() {
     const [inputTag, setInputTag] = useState(false)
     const [email, setEmail] = useState('')
     const [team, setTeam] = useState([])
+    const [projectSize, setProjectSize] = useState([])
     const [flashMessage, setFlashMessage] = useState(null)
     // const fetchProject = async () => {
     //     try {
@@ -67,6 +71,23 @@ export default function Project() {
     }
         , []);
 
+    useEffect(() => {
+        const collectionRef = collection(database, 'totalStoryPoints');
+        const q = onSnapshot(collectionRef, (querySnapshot) => {
+            const totalStoryPoint = [];
+            querySnapshot.forEach((doc) => {
+
+                totalStoryPoint.push(doc.data());
+               
+            });
+            setProjectSize(totalStoryPoint);
+            console.log(totalStoryPoint);
+        });
+        return () => {
+            q();
+        };
+    }, [])
+
     const handleOnInvite = async () => {
         setFlashMessage(null)
         setInputTag(false)
@@ -122,6 +143,17 @@ export default function Project() {
                         <div className="container">
                             <h1 className="display-6">{project && project.title}</h1>
                             <p className="lead">{project && project.description}</p>
+                            {
+                                projectSize?.length>0 && projectSize.map((size, i) => {
+                                    return (
+                                        size.project_id === project.project_id && <p className="lead" key={i}>
+                                            EstimatedProject Size: {size.points}
+                                        </p>
+                                            
+                                    )
+                                })
+
+                            }
                         </div>
                     </div>
                 </div>
