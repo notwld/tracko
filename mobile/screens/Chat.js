@@ -87,30 +87,29 @@ export default function Chat(props) {
     });
   }, [navigation]);
 
-  useLayoutEffect(() => {
-
+  useEffect(() => {
     const collectionRef = collection(database, 'chats');
-        const q = onSnapshot(collectionRef, (querySnapshot) => {
-            const messages = [];
-            querySnapshot.forEach((doc) => {
-
-                messages.push({
-                    _id: doc.data()._id,
-                    createdAt: doc.data().createdAt.toDate(),
-                    text: doc.data().text,
-                    user: doc.data().user,
-                    avatar: doc.data().user.avatar,
-                    downloadURL: doc.data().downloadURL
-                });
-            });
-            // sort messages by date, most recent will be last
-            setMessages(messages.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()));
-            console.log(messages);
-
+    const q = query(collectionRef, orderBy('createdAt', 'asc')); 
+  
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const messages = [];
+      querySnapshot.forEach((doc) => {
+        messages.push({
+          _id: doc.data()._id,
+          createdAt: doc.data().createdAt.toDate(),
+          text: doc.data().text,
+          user: doc.data().user,
+          avatar: doc.data().user.avatar,
+          downloadURL: doc.data().downloadURL
         });
-
-    return () => q();
+      });
+  
+     setMessages(messages.sort((a, b) => b.createdAt - a.createdAt));
+    });
+  
+    return () => unsubscribe();
   }, []);
+  
 
 
   const onSend = useCallback((messages = []) => {
@@ -138,7 +137,7 @@ export default function Chat(props) {
       const { _id, createdAt, text, user } = messages[0];
       addDoc(collection(database, 'chats'), {
         _id,
-        createdAt,
+        createdAt: new Date(),
         text,
         user,
 
@@ -152,6 +151,7 @@ export default function Chat(props) {
     if (currentMessage.downloadURL) console.log(currentMessage.downloadURL, "audi==========");
     return (
       <View
+      key={currentMessage._id}
         style={{
           borderRadius: 10,
           display: 'flex',
@@ -368,7 +368,7 @@ export default function Chat(props) {
                           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                             console.log('File available at', downloadURL);
 
-                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(),  downloadURL: downloadURL.toString(), user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300' } }];
+                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(),  downloadURL: downloadURL, user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300' } }];
                             onSend(previousMessages);
 
                           });
