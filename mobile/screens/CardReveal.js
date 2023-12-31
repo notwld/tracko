@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, FlatList, TouchableOpacity } from 'react-native';
-import { collection, onSnapshot } from 'firebase/firestore';
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { addDoc, collection, onSnapshot } from 'firebase/firestore';
 import { auth, database } from '../config/firebase';
 import { useNavigation } from "@react-navigation/native";
 import { BackHandler } from 'react-native';
@@ -8,7 +8,9 @@ import { BackHandler } from 'react-native';
 const CardReveal = ({ route }) => {
     const { backlog } = route.params;
     const { backlogs } = route.params;
-    console.log(backlogs);
+    const {currentDocumentId} = route.params;
+    // console.log(backlogs); 
+    console.log(currentDocumentId);
     const { title, product_backlog_id } = backlog;
     const [selectedStoryPoints, setSelectedStoryPoints] = useState([]);
     const [maxStoryPoint, setMaxStoryPoint] = useState(null);
@@ -17,6 +19,7 @@ const CardReveal = ({ route }) => {
 
     useEffect(() => {
         BackHandler.addEventListener('hardwareBackPress', () => true);
+        
 
         const dbRef = collection(database, 'storypoints');
         const unsubscribe = onSnapshot(dbRef, (querySnapshot) => {
@@ -72,7 +75,7 @@ const CardReveal = ({ route }) => {
                 numColumns={3}
                 contentContainerStyle={stylesheet.cardContainer}
             />
-            <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog ,backlogs:backlogs })}>
+            <TouchableOpacity style={stylesheet.btn} onPress={() => navigation.navigate("Chat", { backlog: backlog ,backlogs:backlogs,currentDocumentId:currentDocumentId})}>
                 <Text style={{ fontWeight: 'bold', textAlign: 'center',color:"white", fontSize: 15 }}>Move to Discussion</Text>
             </TouchableOpacity>
         </View>

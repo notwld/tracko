@@ -11,6 +11,9 @@ export default function Board() {
         if (user) {
             setUser(JSON.parse(user));
         }
+        else {
+            window.location.href = `/login`;
+        }
     }, []);
     return (
         <>

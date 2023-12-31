@@ -11,6 +11,8 @@ export default function PokerPlaning() {
     const [session, setSession] = useState(false);
     const [messages, setMessages] = useState([])
     const [formValue, setFormValue] = useState('');
+    const [current, setCurrent] = useState('')
+    const [storyPoints, setStoryPoints] = useState([])
     const [team, setTeam] = useState([
         {
             name: 'Muhammad Waleed',
@@ -52,7 +54,7 @@ export default function PokerPlaning() {
     const handleSessionStart = async () => {
         try {
             console.log(project.project_id)
-            const response = await fetch(baseUrl+`/api/poker-planning/invite`, {
+            const response = await fetch(baseUrl + `/api/poker-planning/invite`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': "application/json",
@@ -76,11 +78,8 @@ export default function PokerPlaning() {
         }
     }
     useEffect(() => {
-        // fetch messages from firebase collection name chat
         const collectionRef = collection(database, 'chats');
-        const q = query(collectionRef, orderBy('createdAt', 'desc'));
-
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const q = onSnapshot(collectionRef, (querySnapshot) => {
             const messages = [];
             querySnapshot.forEach((doc) => {
                 messages.push({
@@ -88,28 +87,56 @@ export default function PokerPlaning() {
                     createdAt: doc.data().createdAt.toDate(),
                     text: doc.data().text,
                     user: doc.data().user._id.split('@')[0],
+                    avatar: doc.data().user.avatar,
                 });
             });
-            // reverse the array to show the latest messages first
             setMessages(messages.reverse());
-        }
-        );
-        return () => unsubscribe();
-    }, [])
+            console.log(messages);
+        });
+
+        const currentRef = collection(database, 'current');
+        const currentQuery = onSnapshot(currentRef, (querySnapshot) => {
+            const currentBacklog = [];
+            querySnapshot.forEach((doc) => {
+                currentBacklog.push({
+                    ...doc.data(),
+                });
+            });
+            console.log(currentBacklog);
+            setCurrent(currentBacklog[0]); // Assuming there is only one document in the current collection
+        });
+
+        const storyPointsRef = collection(database, 'storypoints');
+        const storyPointsQuery = onSnapshot(storyPointsRef, (querySnapshot) => {
+            const storyPointsData = [];
+            querySnapshot.forEach((doc) => {
+                storyPointsData.push({
+                    ...doc.data(),
+                });
+            });
+            setStoryPoints(storyPointsData);
+        });
+
+        return () => {
+            q();
+            currentQuery();
+            storyPointsQuery();
+        };
+    }, []);
     const sendMessage = async (e) => {
         e.preventDefault();
-    
+
         // Check if user is defined and has necessary properties
         if (!user || !user.id || !user.name) {
             console.error("Invalid user object");
             return;
         }
-    
+
         const uid = user.id;
         const name = user.name;
         const photoURL = "";
         const createdAt = new Date();
-    
+
         try {
             // Ensure that the data being added does not contain undefined values
             const messageData = {
@@ -119,14 +146,14 @@ export default function PokerPlaning() {
                 username: name || "", // Use a default value if name is undefined
                 photoURL,
             };
-    
+
             addDoc(collection(database, 'chats'), messageData);
             setFormValue('');
         } catch (error) {
             console.error(error);
         }
     };
-    
+
 
     const [selectedTeam, setSelectedTeam] = useState([])
     return (
@@ -180,19 +207,42 @@ export default function PokerPlaning() {
                     </p>
                 </div>}
             </div>
+            {session &&<><div className="row my-2">
+                {current && (
+                    <div className="col">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="card-content">{current.title}</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+            <div className="my-2">
+                {
+                    storyPoints?.length > 0 && storyPoints.map((point, i) => (
+                        point?.product_backlog_id == current?.product_backlog_id &&<div className="card my-2" key={i}>
+                            <div className="card-body">
+                                { point.assignedBy + " assigned story point " + point.storyPoint}
+
+                            </div>
+                        </div>
+                    ))
+                }
+            </div></>}
             {session && <div className='row'>
                 <div className="col">
                     <div className="card">
                         <div className="card-body">
                             {
                                 messages.map(msg => (
-                                    <div key={msg._id}>
+                                    <div key={msg._id} className='py-1 px-3 my-1' style={{ backgroundColor: "#e9ecef",width:"fit-content",borderRadius:"10px" }}>
                                         <div className="d-flex justify-content-start align-items-center my-3">
                                             <div className="d-flex justify-content-center align-items-center" style={{ width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#e9ecef" }}>
-                                                <i className="bi bi-person-fill" style={{ fontSize: "1.5rem" }}></i>
+                                                <img src={msg.avatar} alt="" className="pe-2" style={{ borderRadius: "50%" }} width={40} />
                                             </div>
                                             <div className="ms-2">
-                                                <span>
+                                                <span className='fw-bold'>
                                                     {msg.user}
                                                 </span>
                                                 <p className="card-text">{msg.text}</p>

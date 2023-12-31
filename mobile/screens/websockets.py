@@ -20,10 +20,11 @@ print(code)
 def connect():
     invite_code = request.json.get('code')
     email = request.json.get('email')
-    req = requests.post('http://localhost:19001/api/poker-planning/join', json={'code': invite_code, 'email': email})
+    req = requests.post('http://127.0.0.1:19001/api/poker-planning/join', json={'code': invite_code, 'email': email})
+    print(req.status_code)
     if req.status_code == 200:
         res = json.loads(req.content)
-        
+        print(res)
         return jsonify({'success': True, 'data': res}), 200
     return jsonify({'success': False}), 200
 
@@ -53,4 +54,4 @@ def backlogs():
 
 ], 200
 if __name__ == '__main__':
-    app.run(debug=True,host="192.168.1.106",port="19002")
+    app.run(debug=True,host="0.0.0.0",port="19002")

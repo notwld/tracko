@@ -11,7 +11,9 @@ import {
   addDoc,
   orderBy,
   query,
-  onSnapshot
+  onSnapshot,
+  deleteDoc,
+  doc
 } from 'firebase/firestore';
 
 import { signOut } from 'firebase/auth';
@@ -29,6 +31,8 @@ import { BackHandler } from 'react-native';
 export default function Chat(props) {
   const backlog = props.route.params.backlog;
   const backlogs = props.route.params.backlogs;
+  const currentDocumentId = props.route.params.currentDocumentId;
+  console.log(currentDocumentId);
   console.log(backlogs);
   // console.log(backlog);
 
@@ -102,7 +106,7 @@ export default function Chat(props) {
 
 
   const onSend = useCallback((messages = []) => {
-    
+
 
     setMessages(previousMessages =>
       GiftedChat.append(previousMessages, messages)
@@ -120,7 +124,7 @@ export default function Chat(props) {
       });
 
       return
-      
+
     } else {
 
       const { _id, createdAt, text, user } = messages[0];
@@ -136,7 +140,7 @@ export default function Chat(props) {
 
   const renderMessage = props => {
     const { currentMessage } = props;
-    if (currentMessage.user.downloadURL) console.log(currentMessage.user.downloadURL,"audi==========");
+    if (currentMessage.user.downloadURL) console.log(currentMessage.user.downloadURL, "audi==========");
     return (
       <View
         style={{
@@ -212,7 +216,15 @@ export default function Chat(props) {
 
   const handleRevote = () => {
     console.log(backlog);
-    navigation.navigate('AssignStoryPoints', { backlog,revote:true ,backlogs:backlogs});
+    deleteDoc(doc(database, 'current', currentDocumentId))
+        .then(() => {
+
+          console.log("Document successfully deleted!");
+        }
+        ).catch((error) => {
+          console.error("Error removing document: ", error);
+        });
+    navigation.navigate('AssignStoryPoints', { backlog, revote: true, backlogs: backlogs });
   }
 
   const handleNext = () => {
@@ -220,22 +232,40 @@ export default function Chat(props) {
     const currentIndex = backlogs.findIndex((item) => item.product_backlog_id === backlog.product_backlog_id);
 
     if (currentIndex !== -1) {
-        const currentIndexInArray = backlogs.findIndex((item) => item.product_backlog_id === backlogs[currentIndex].product_backlog_id);
+      const currentIndexInArray = backlogs.findIndex((item) => item.product_backlog_id === backlogs[currentIndex].product_backlog_id);
 
-        const nextIndex = currentIndexInArray + 1;
+      const nextIndex = currentIndexInArray + 1;
+      deleteDoc(doc(database, 'current', currentDocumentId))
+        .then(() => {
 
-        if (nextIndex < backlogs.length) {
-            const nextElement = backlogs[nextIndex];
-            console.log(nextElement);
-            navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs });
-        } else {
-            console.log("No next element");
-            navigation.navigate('FinishScreen');
+          console.log("Document successfully deleted!");
         }
+        ).catch((error) => {
+          console.error("Error removing document: ", error);
+        });
+      if (nextIndex < backlogs.length) {
+        const nextElement = backlogs[nextIndex];
+        console.log(nextElement);
+
+
+        navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs });
+      } else {
+        console.log("No next element");
+        deleteDoc(doc(database, 'current', currentDocumentId))
+        .then(() => {
+
+          console.log("Document successfully deleted!");
+        }
+        ).catch((error) => {
+          console.error("Error removing document: ", error);
+        });
+        navigation.navigate('FinishScreen');
+      }
+
     } else {
-        console.log("Current backlog not found in array");
+      console.log("Current backlog not found in array");
     }
-};
+  };
 
 
   return (

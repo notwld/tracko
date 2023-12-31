@@ -6,14 +6,14 @@ import { updateStoryPoint } from '../utils/backlogHook';
 import { useNavigation } from "@react-navigation/native";
 import { useState } from "react";
 import { auth, database, app } from '../config/firebase';
-import { addDoc, collection, doc, updateDoc,onSnapshot } from "firebase/firestore";
+import { addDoc, collection, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { getDoc } from "firebase/firestore";
 import { BackHandler } from 'react-native';
 
 
 export default function AssignStoryPoints({ route, navigation }) {
   const { backlog } = route.params;
-  const {backlogs} = route.params;
+  const { backlogs } = route.params;
   const { revote } = route.params;
   const { product_backlog_id, title } = backlog;
 
@@ -21,13 +21,16 @@ export default function AssignStoryPoints({ route, navigation }) {
   const [selectedStoryPoint, setSelectedStoryPoint] = useState(null);
   const [allStories, setAllStories] = useState(null);
   const [documentId, setDocumentId] = useState('');
-
+  const [currentDocumentId, setCurrentDocumentId] = useState('');
   const handleAssignStoryPoint = (point) => {
     setSelectedStoryPoint(point);
 
+
   };
+
   useEffect(() => {
     BackHandler.addEventListener('hardwareBackPress', () => true);
+
   }, []);
   const renderItems = () => {
     return items.map((item, index) => (
@@ -42,36 +45,51 @@ export default function AssignStoryPoints({ route, navigation }) {
   };
 
   const handleReveal = () => {
-    const storypointsCollection = collection(database, 'storypoints');
-    
-    if (!revote) {
-      addDoc(storypointsCollection, {
-        product_backlog_id,
-        title,
-        storyPoint: selectedStoryPoint,
-        assignedBy: auth.currentUser.email.split('@')[0].toString(),
+    addDoc(collection(database, 'current'), {
+      product_backlog_id,
+      title,
+      storyPoint: selectedStoryPoint,
+      assignedBy: auth.currentUser.email.split('@')[0].toString(),
+    })
+      .then((docRef) => {
+        setCurrentDocumentId(docRef.id);
+        console.log('Current Document written with ID: ', docRef.id);
+  
+        const storypointsCollection = collection(database, 'storypoints');
+        if (!revote) {
+          addDoc(storypointsCollection, {
+            product_backlog_id,
+            title,
+            storyPoint: selectedStoryPoint,
+            assignedBy: auth.currentUser.email.split('@')[0].toString(),
+          })
+            .then((innerDocRef) => {
+              console.log('Document written with ID: ', innerDocRef.id);
+              setDocumentId(innerDocRef.id);
+              console.log("Current Document ID: ", docRef.id, "Inner Document ID: ", innerDocRef.id);
+              navigation.navigate("CardReveal", { backlog: backlog, docId: innerDocRef.id, backlogs: backlogs, currentDocumentId: docRef.id });
+            })
+            .catch((error) => {
+              console.error('Error writing document: ', error);
+            });
+        } else {
+          updateDoc(doc(storypointsCollection, documentId), {
+            storyPoint: selectedStoryPoint,
+          })
+            .then(() => {
+              console.log('Document successfully updated!');
+              navigation.navigate("CardReveal", { backlog: backlog, docId: documentId, backlogs: backlogs, currentDocumentId: currentDocumentId });
+            })
+            .catch((error) => {
+              console.error('Error updating document: ', error);
+            });
+        }
       })
-        .then((docRef) => {
-          console.log('Document written with ID: ', docRef.id);
-          setDocumentId(docRef.id);
-        })
-        .catch((error) => {
-          console.error('Error writing document: ', error);
-        });
-    } else {
-      updateDoc(doc(storypointsCollection, documentId), {
-        storyPoint: selectedStoryPoint,
-      })
-        .then(() => {
-          console.log('Document successfully updated!');
-        })
-        .catch((error) => {
-          console.error('Error updating document: ', error);
-        });
-
-    }
-    navigation.navigate("CardReveal", { backlog: backlog, docId: documentId,backlogs:backlogs });
-  }
+      .catch((error) => {
+        console.error('Error writing document: ', error);
+      });
+  };
+  
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
@@ -107,7 +125,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
     fontSize: 20,
-    textAlign:"center"
+    textAlign: "center"
   },
   btn: {
     backgroundColor: myColor,

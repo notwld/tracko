@@ -25,7 +25,7 @@ const Home = () => {
 
         const handleInviteCode = async () => {
             try {
-                const res = await fetch("http://192.168.1.106:19002/code", {
+                const res = await fetch("http://192.168.1.104:19002/code", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -37,17 +37,15 @@ const Home = () => {
                 });
         
                 const data = await res.json();
-        
                 if (data.data.product_backlogs && data.data.project) {
                     const i = await data.data.product_backlogs
                     const j = await data.data.project
-                    setBacklog(i);
-                    setProject(j);
+                    // console.log(i);
+
         
-                    console.log(backlog);
-                    console.log(project);
+                    
                     navigation.navigate("AssignStoryPoints", {
-                        backlog: i[0],  // Use 'i' instead of 'backlog'
+                        backlog: i[0], 
                         backlogs: i,
                         project: j,
                     });                    
