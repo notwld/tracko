@@ -10,6 +10,10 @@ export default function Login() {
 
     const handleLogin = async () => {
         try {
+            if (email==""&&password==""){
+                alert("Fill all fields")
+                return
+            }
             const response = await fetch(baseUrl+'/api/auth/login', {
                 method: 'POST',
                 headers: {
@@ -31,10 +35,13 @@ export default function Login() {
             } else {
                 const errorData = await response.json();
                 console.error(errorData); // Log the error data
+                alert("Incorrect Credentials")
 
             }
         } catch (error) {
             console.error(error); // Log any unexpected errors
+            alert("Server Error")
+
         }
     };
 

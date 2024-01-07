@@ -1,0 +1,17 @@
+apiVersion: skaffold/v2beta16
+kind: Config
+build:
+  artifacts:
+    - image: backend-image
+      context: ./backend
+      docker:
+        dockerfile: Dockerfile
+    - image: frontend-image
+      context: ./frontend
+      docker:
+        dockerfile: Dockerfile
+deploy:
+  kubectl:
+    manifests:
+      - k8s/backend-config.yaml
+      - k8s/frontend-config.yaml

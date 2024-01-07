@@ -25,7 +25,7 @@ const Home = () => {
 
         const handleInviteCode = async () => {
             try {
-                const res = await fetch("http://192.168.1.104:19002/code", {
+                const res = await fetch("http://192.168.242.59:19002/code", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'

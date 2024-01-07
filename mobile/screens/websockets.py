@@ -18,6 +18,7 @@ code = generate_room_code()
 print(code)
 @app.route('/code', methods=['POST'])
 def connect():
+    
     invite_code = request.json.get('code')
     email = request.json.get('email')
     req = requests.post('http://127.0.0.1:19001/api/poker-planning/join', json={'code': invite_code, 'email': email})
