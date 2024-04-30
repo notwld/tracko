@@ -22,6 +22,8 @@ const notifcation = require('./apis/notifications.js')
 
 const pokerPlanning = require('./apis/poker-planning.js')
 
+const usecase = require('./apis/usecase.js')
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -64,6 +66,7 @@ app.use('/api/project', projects);
 app.use('/api/team', team);
 app.use('/api/notifications', notifcation);
 app.use('/api/poker-planning', pokerPlanning);
+app.use("/api/usecase", usecase);
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).json({ error: 'Internal Server Error' });

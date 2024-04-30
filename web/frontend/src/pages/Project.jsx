@@ -15,6 +15,7 @@ export default function Project() {
     const [team, setTeam] = useState([])
     const [projectSize, setProjectSize] = useState([])
     const [flashMessage, setFlashMessage] = useState(null)
+    const [totalFpPoints, setTotalFpPoints] = useState(0)
     // const fetchProject = async () => {
     //     try {
     //         const response = await fetch(`http://localhost:3000/api/project/${projectId}`, {
@@ -37,7 +38,7 @@ export default function Project() {
     // }
     const fetchTeam = async () => {
         try {
-            const response = await fetch(baseUrl+`/api/team/${project.project_id}`, {
+            const response = await fetch(baseUrl + `/api/team/${project.project_id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': "application/json",
@@ -78,7 +79,7 @@ export default function Project() {
             querySnapshot.forEach((doc) => {
 
                 totalStoryPoint.push(doc.data());
-               
+
             });
             setProjectSize(totalStoryPoint);
             console.log(totalStoryPoint);
@@ -95,7 +96,7 @@ export default function Project() {
             if (email === "") {
                 alert("Please enter a valid email")
             }
-            await fetch(baseUrl+`/api/team/invite`, {
+            await fetch(baseUrl + `/api/team/invite`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -120,7 +121,70 @@ export default function Project() {
             console.log(error)
         }
     }
+    const calculateTotalValue = (questionValues) => {
+        let totalValue = 0;
 
+        for (const question in questionValues) {
+            totalValue += questionValues[question];
+        }
+
+        return totalValue;
+    };
+    const calculateTotalFp = (dataList) => {
+        let totalSum = 0;
+
+        // Iterate over the dataList and accumulate totalComplexityScore values
+        dataList.forEach((data) => {
+            if (data && typeof data.totalComplexityScore === 'number') {
+                totalSum += data.totalComplexityScore;
+            }
+        });
+
+        return totalSum;
+    };
+    
+    useEffect(() => {
+        const collectionRef = collection(database, 'questions');
+        const q = onSnapshot(collectionRef, (querySnapshot) => {
+            const questions = [];
+            querySnapshot.forEach((doc) => {
+
+                questions.push(doc.data());
+
+            });
+
+            const question = questions.filter((question) => question.projectId === project.project_id);
+            // console.log(questions);
+            console.log(question);
+            const questionComplexity = question.map((question) => question.complexities);
+            console.log(calculateTotalValue(questionComplexity[0]));
+        const collectionRef2 = collection(database, 'storypointsWithFP');
+        const q2 = onSnapshot(collectionRef2, (querySnapshot) => {
+            const fps = [];
+            querySnapshot.forEach((doc) => {
+
+                fps.push(doc.data());
+
+            });
+            console.log(fps)
+            console.log("____________totalComplexity______________");
+            const filterdFp = fps.filter((fp) => fp.project_id === project.project_id);
+            const totalComplexity = calculateTotalFp(filterdFp);
+            console.log(totalComplexity);
+            const totalFpPoints = totalComplexity + calculateTotalValue(questionComplexity[0]);
+            console.log(totalFpPoints);
+            setTotalFpPoints(totalFpPoints);
+        });
+    });
+
+
+        return () => {
+            q();
+        };
+
+
+    }, [])
+    
     return (
         <>
             {user && <div className="container my-0 px-0 ps-4">
@@ -144,14 +208,20 @@ export default function Project() {
                             <h1 className="display-6">{project && project.title}</h1>
                             <p className="lead">{project && project.description}</p>
                             {
-                                projectSize?.length>0 && projectSize.map((size, i) => {
+                                projectSize?.length > 0 && projectSize.map((size, i) => {
                                     return (
-                                        size.project_id === project.project_id &&i==projectSize.length-1 && <p className="lead" key={i}>
+                                        size.project_id === project.project_id && i == projectSize.length - 1 && <p className="lead" key={i}>
                                             Story Points: {size.points}
                                         </p>
-                                            
+
                                     )
                                 })
+
+                            }
+                            {
+                                totalFpPoints&&<p className="lead">
+                                    Function Points: {totalFpPoints}
+                                </p>
 
                             }
                         </div>
@@ -167,7 +237,7 @@ export default function Project() {
                                 {user.role === "Product Owner" ? <button className="btn btn-primary btn-sm" onClick={() => setInputTag(!inputTag)}>Invite</button> : null}
                                 {
                                     inputTag && <div className="input-group input-group-sm mx-2">
-                                        <input type="text" className="form-control" placeholder="Enter email" aria-label="Enter email" aria-describedby="button-addon2" autoFocus value={email} onChange={(e) => setEmail(e.target.value)}  />
+                                        <input type="text" className="form-control" placeholder="Enter email" aria-label="Enter email" aria-describedby="button-addon2" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} />
                                         <button className="btn btn-outline-secondary" type="button" id="button-addon2" onClick={() => handleOnInvite()}>Send</button>
                                     </div>
                                 }

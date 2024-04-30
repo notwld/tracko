@@ -8,8 +8,8 @@ const authorize = require('../middlewares/authorize.js');
 
 router.post('/list', authorize, async (req, res) => {
     const {user_id} = req.body
-    console.log(req.body)
-    console.log(user_id,"from notifications.js")
+    // console.log(req.body)
+    // console.log(user_id,"from notifications.js")
     try {
 
         const notifications = await prisma.notification.findMany({

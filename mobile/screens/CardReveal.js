@@ -12,7 +12,7 @@ const CardReveal = ({ route }) => {
     const {project} = route.params;
     const {user} = route.params;
     // console.log(backlogs); 
-    console.log(currentDocumentId);
+    // console.log(currentDocumentId);
     const { title, product_backlog_id } = backlog;
     const [selectedStoryPoints, setSelectedStoryPoints] = useState([]);
     const [maxStoryPoint, setMaxStoryPoint] = useState(null);

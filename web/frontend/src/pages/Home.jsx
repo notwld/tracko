@@ -120,6 +120,7 @@ export default function Home() {
           "title": projectTitle,
           "description": projectDescription,
           "product_owner_id": userType.product_owner_id,
+        
         }),
       });
 
@@ -197,6 +198,16 @@ export default function Home() {
                             />
                           </div>
                         </div>
+                        {/* <div className="row mb-3">
+                          <div className="col">
+                            <select className="form-select" aria-label="Default select example">
+                              <option selected>Select Type</option>
+                              <option value="1">FP Metrices</option>
+                              <option value="2">User Stories</option>
+                              <option value="3">COCOMO</option>
+                            </select>
+                          </div>
+                        </div> */}
                       </div>
                     </div>
                   </div>

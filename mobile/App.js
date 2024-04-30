@@ -11,6 +11,11 @@ import Home from './screens/Home';
 import AssignStoryPoint from './screens/AssignStoryPoint';
 import CardReveal from './screens/CardReveal';
 import FinishScreen from './screens/FinishScreen';
+import Usecase from './screens/Usecase';
+import UsecaseReveal from './screens/UsecaseReveal';
+import ChatClone from './screens/ChatClone';
+import CardRevealFP from './screens/CardRevealFP';
+import FPQuestions from './screens/FPQuestions';
 
 const Stack = createStackNavigator();
 const AuthenticatedUserContext = createContext({});
@@ -29,9 +34,14 @@ function ChatStack() {
     <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }} >
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="Chat" component={Chat} />
+      <Stack.Screen name="ChatClone" component={ChatClone} />
       <Stack.Screen name="AssignStoryPoints" component={AssignStoryPoint} />
       <Stack.Screen name="CardReveal" component={CardReveal} />
       <Stack.Screen name="FinishScreen" component={FinishScreen} />
+      <Stack.Screen name="Usecase" component={Usecase} />
+      <Stack.Screen name="UsecaseReveal" component={UsecaseReveal} />
+      <Stack.Screen name="CardRevealFP" component={CardRevealFP} />
+      <Stack.Screen name="FPQuestions" component={FPQuestions} />
     </Stack.Navigator>
   );
 }

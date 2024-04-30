@@ -3,18 +3,106 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from "@react-navigation/native";
 import { auth, database, app } from '../config/firebase';
 import { addDoc, collection, doc, updateDoc, onSnapshot } from "firebase/firestore";
+
 import { getDoc } from "firebase/firestore";
 const FinishScreen = ({ route, navigation }) => {
     const project = route.params.project;
     const user = route.params.user;
     console.log(project);
     console.log(user);
+    const usecases = [];
+    const usecasesCollection = collection(database, "usecases");
+    onSnapshot(usecasesCollection, (snapshot) => {
+        snapshot.docs.forEach((doc) => {
+            usecases.push(doc.data());
+        });
+    }
+    );
+
+
+    let simpleActorCount = 0;
+    let averageActorCount = 0;
+    let complexActorCount = 0;
+
+    let simpleUseCaseCount = 0;
+    let averageUseCaseCount = 0;
+    let complexUseCaseCount = 0;
+
+    usecases.forEach(item => {
+        // For actors
+        for (const actor in item.actorComplexity) {
+            const complexity = item.actorComplexity[actor].complexity.toLowerCase();
+            if (complexity === "simple") {
+                simpleActorCount++;
+            } else if (complexity === "average") {
+                averageActorCount++;
+            } else if (complexity === "complex") {
+                complexActorCount++;
+            }
+        }
+
+        // For use cases
+        const useCaseComplexity = item.useCaseComplexity.toLowerCase();
+        if (useCaseComplexity === "simple") {
+            simpleUseCaseCount++;
+        } else if (useCaseComplexity === "average") {
+            averageUseCaseCount++;
+        } else if (useCaseComplexity === "complex") {
+            complexUseCaseCount++;
+        }
+    });
+
+    const actorWeights = {
+        "simple": 1,
+        "average": 2,
+        "complex": 3
+    };
+
+    const useCaseWeights = {
+        "simple": 5,
+        "average": 10,
+        "complex": 15
+    };
+
+    const UAW = (actorWeights["simple"] * simpleActorCount) + (actorWeights["average"] * averageActorCount) + (actorWeights["complex"] * complexActorCount);
+    console.log("UAW:", UAW);
+
+    const UUCW = (useCaseWeights["simple"] * simpleUseCaseCount) + (useCaseWeights["average"] * averageUseCaseCount) + (useCaseWeights["complex"] * complexUseCaseCount);
+    console.log("UUCW:", UUCW);
+
+    const UUCP = UAW + UUCW;
+    console.log("UUCP:", UUCP);
+
+    let TCF = 0;
+    let EF = 0;
+
+    usecases.forEach(item => {
+        TCF += item.calculatedTechnicalWeight;
+        EF += item.calculatedEnvironmentalWeight;
+    });
+
+    console.log("TCF:", TCF);
+    console.log("EF:", EF);
+
+    const UCP = UUCP * TCF * EF
+    console.log("UCP:", UCP);
+
+    addDoc(collection(database, "calculatedAdjustedValue"), {
+        UAW,
+        UUCW,
+        UUCP,
+        TCF,
+        EF,
+        UCP
+    });
+
+
     const [storypoints, setStoryPoints] = useState([]);
     useEffect(() => {
         const dbRef = collection(database, 'storypoints');
         const unsubscribe = onSnapshot(dbRef, (querySnapshot) => {
             const points = querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-           
+
             setStoryPoints(points);
         });
         return unsubscribe;

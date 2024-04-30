@@ -21,8 +21,28 @@ def connect():
     
     invite_code = request.json.get('code')
     email = request.json.get('email')
-    req = requests.post('http://127.0.0.1:19001/api/poker-planning/join', json={'code': invite_code, 'email': email})
+    req = requests.post('http://127.0.0.1:3000/api/poker-planning/join', json={'code': invite_code, 'email': email})
     print(req.status_code)
+    if req.status_code == 400:
+        res = json.loads(req.content)
+        return jsonify({'success': False,"err":res}), 400
+    if req.status_code == 200:
+        res = json.loads(req.content)
+        print(res)
+        return jsonify({'success': True, 'data': res}), 200
+    return jsonify({'success': False}), 200
+
+@app.route('/usecase', methods=['POST'])
+def usecase():
+    
+    invite_code = request.json.get('code')
+    email = request.json.get('email')
+    req = requests.post('http://127.0.0.1:3000/api/poker-planning/usecase', json={'code': invite_code, 'email': email})
+    print(req.status_code)
+    if req.status_code == 400:
+        res = json.loads(req.content)
+        print(res)
+        return jsonify({'success': False,"err":res}), 400
     if req.status_code == 200:
         res = json.loads(req.content)
         print(res)
@@ -36,8 +56,11 @@ def update():
     points = request.json.get('point')
     user_id = request.json.get('user_id')
     print(product_backlog_id, points, user_id)
-    req = requests.post('http://127.0.0.1:19001/api/backlog/update-estimates', json={'product_backlog_id': product_backlog_id, 'points': points, 'user_id': user_id})
-    print(req)
+    req = requests.post('http://127.0.0.1:3000/api/backlog/update-estimates', json={'product_backlog_id': product_backlog_id, 'points': points, 'user_id': user_id})
+    if req.status_code == 400:
+        res = json.loads(req.content)
+        print(res)
+        return jsonify({'success': False,"err":res}), 400
     if req.status_code == 200:
         time.sleep(1)
         res = json.loads(req.content)

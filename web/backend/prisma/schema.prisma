@@ -68,7 +68,7 @@ model product_backlog {
   product_backlog_id Int              @id @default(autoincrement())
   project_id         Int?
   title              String           @db.VarChar(255)
-  description        String          @db.Text
+  description        String           @db.Text
   priority           String?          @db.VarChar(255)
   assignee           Int?
   reporter           Int?
@@ -102,6 +102,9 @@ model project {
   product_owner_id   Int?
   poker_planning_id  Int?
   project_team_id    Int?
+  user_id            Int?
+  fp                 Int?
+  cocomo             Int?
   project_team       project_team[]
   sprint             sprint?        @relation(fields: [sprint_id], references: [sprint_id], onDelete: NoAction, onUpdate: NoAction, map: "project_ibfk_2")
 
@@ -110,6 +113,51 @@ model project {
   @@index([product_owner_id], map: "product_owner_id")
   @@index([project_team_id], map: "project_team_id")
   @@index([sprint_id], map: "sprint_id")
+}
+
+model fp_des {
+  fp_des_id  Int     @id @default(autoincrement())
+  type       String?
+  count      Int?
+  complexity Int?
+  fp_id      Int?
+  fp         fp?     @relation(fields: [fpFp_id], references: [fp_id])
+  fpFp_id    Int?
+
+  @@index([fp_id], map: "fp_id")
+}
+
+model fp {
+  fp_id      Int      @id @default(autoincrement())
+  fp_des     fp_des[]
+  project_id Int?
+}
+
+model actor {
+  actor_id    Int     @id @default(autoincrement())
+  name        String
+  description String?
+  complexity  Int?
+  usecaseId   Int?
+
+  usecase           usecase? @relation(fields: [usecaseUsecase_id], references: [usecase_id])
+  usecaseUsecase_id Int?
+}
+
+model usecase {
+  usecase_id               Int     @id @default(autoincrement())
+  title                    String  @db.VarChar(255)
+  description              String  @db.Text
+  pre_condition            String  @db.Text
+  steps                    String  @db.Text
+  post_condition           String  @db.Text
+  actor                    actor[]
+  technical_complexity     Int?
+  environmental_complexity Int?
+  type                     String?
+  transactions             Int?
+  weightfactor             Int?
+  project_id               Int?
 }
 
 model project_team {

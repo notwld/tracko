@@ -13,6 +13,11 @@ import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Project from './pages/Project.jsx'
+import Cocomo from './components/Cocomo.jsx'
+import Eaf from './components/EAF.jsx'
+import Effort from './components/Effort.jsx'
+import Conversion from './components/Conversion.jsx'
+
 
 const routes = createBrowserRouter([
   {
@@ -54,6 +59,22 @@ const routes = createBrowserRouter([
       {
         path: "/profile",
         element: <Profile />
+      },
+      {
+        path: "/Cocomo",
+        element: <Cocomo/>
+      },
+      {
+        path: "/Eaf",
+        element: <Eaf />
+      },
+      {
+        path: "/Effort",
+        element: <Effort />
+      },
+      {
+        path: "/Conversion",
+        element: <Conversion/>
       }
     ]
   }

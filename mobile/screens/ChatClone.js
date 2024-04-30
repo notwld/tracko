@@ -28,18 +28,11 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { BackHandler } from 'react-native';
 
 
-export default function Chat(props) {
-  const backlog = props.route.params.backlog;
-  const mode = props.route.params.mode;
-  console.log(mode);
-  const backlogs = props.route.params.backlogs;
-  const currentDocumentId = props.route.params.currentDocumentId;
-  const user = props.route.params.user;
-  console.log(currentDocumentId);
-  console.log(backlogs);
-  const project = props.route.params.project;
-  // console.log(backlog);
-
+export default function ChatClone(props) {
+  const navigate = useNavigation();
+  const { project, usecase, usecases, user, currentDocumentId } = props.route.params;
+  console.log("_______________________chat_______________________-")
+  console.log(props);
   // useEffect(()=>{
 
   //   const playSound = async() =>{
@@ -91,8 +84,8 @@ export default function Chat(props) {
 
   useEffect(() => {
     const collectionRef = collection(database, 'chats');
-    const q = query(collectionRef, orderBy('createdAt', 'asc')); 
-  
+    const q = query(collectionRef, orderBy('createdAt', 'asc'));
+
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const messages = [];
       querySnapshot.forEach((doc) => {
@@ -105,13 +98,13 @@ export default function Chat(props) {
           downloadURL: doc.data().downloadURL
         });
       });
-  
-     setMessages(messages.sort((a, b) => b.createdAt - a.createdAt));
+
+      setMessages(messages.sort((a, b) => b.createdAt - a.createdAt));
     });
-  
+
     return () => unsubscribe();
   }, []);
-  
+
 
 
   const onSend = useCallback((messages = []) => {
@@ -153,7 +146,7 @@ export default function Chat(props) {
     if (currentMessage.downloadURL) console.log(currentMessage.downloadURL, "audi==========");
     return (
       <View
-      key={currentMessage._id}
+        key={currentMessage._id}
         style={{
           borderRadius: 10,
           display: 'flex',
@@ -195,7 +188,7 @@ export default function Chat(props) {
                     console.log('Playing audio..');
                     await Audio.requestPermissionsAsync()
 
-                    if (currentMessage.downloadURL||currentMessage.downloadURL) {
+                    if (currentMessage.downloadURL || currentMessage.downloadURL) {
                       const { sound } = await Audio.Sound.createAsync(
                         { uri: currentMessage.downloadURL },
                         { shouldPlay: true }
@@ -226,74 +219,78 @@ export default function Chat(props) {
   };
 
   const handleRevote = () => {
-    console.log(backlog);
-    deleteDoc(doc(database, 'current', currentDocumentId))
-        .then(() => {
+    console.log("Revote");
+    if (!usecase || !usecases) {
+      console.error("Invalid usecase or usecases array.");
+      return;
+    }
 
-          console.log("Document successfully deleted!");
-        }
-        ).catch((error) => {
-          console.error("Error removing document: ", error);
-        });
-        if (mode){
-    navigation.navigate('AssignStoryPoints', { backlog, revote: true, backlogs: backlogs,project:project , user:user,mode:"FP"});
-        }
-        else{
-          navigation.navigate('AssignStoryPoints', { backlog, revote: true, backlogs: backlogs,project:project , user:user});
+    const usecaseIndex = usecases.findIndex((item) => item.id === usecase.id);
 
-        }
-  }
+    if (usecaseIndex === -1) {
+      console.error("Current usecase not found in usecases array.");
+      return;
+    }
+    deleteDoc(doc(database, 'usecase', currentDocumentId))
+      .then(() => {
+        console.log("Document successfully deleted!");
+        navigate.navigate("Usecase", { usecase: usecase, usecasesData: usecases, project: project, user: user, revote: true });
+
+      })
+      .catch((error) => {
+        console.error("Error removing document: ", error);
+      });
+  };
+
 
   const handleNext = () => {
-    console.log(backlogs);
-    const currentIndex = backlogs.findIndex((item) => item.product_backlog_id === backlog.product_backlog_id);
+    console.log(usecases); // Log the list of use cases
 
+    // Find the index of the current use case in the usecases array
+    const currentIndex = usecases.findIndex((item) => item.title === usecase.title);
+
+    console.log("Current index:", currentIndex);
+    console.log("usecase len:", usecases.length);
     if (currentIndex !== -1) {
-      const currentIndexInArray = backlogs.findIndex((item) => item.product_backlog_id === backlogs[currentIndex].product_backlog_id);
+        // Calculate the index of the next use case in the array
+        const currentIndexInArray = usecases.findIndex((item) => item.title == usecases[currentIndex].title);
+        const nextIndex = currentIndexInArray + 1;
 
-      const nextIndex = currentIndexInArray + 1;
-      deleteDoc(doc(database, 'current', currentDocumentId))
-        .then(() => {
 
-          console.log("Document successfully deleted!");
-        }
-        ).catch((error) => {
-          console.error("Error removing document: ", error);
-        });
-      if (nextIndex < backlogs.length) {
-        const nextElement = backlogs[nextIndex];
-        console.log(nextElement);
-
-        if (mode){
-          navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs,project:project , user:user,mode:"FP"});
-              }
-              else{
-                navigation.navigate('AssignStoryPoints', { backlog: nextElement, backlogs: backlogs,project:project , user:user});
-
-              }
-      } else {
-        console.log("No next element");
+        // Delete the current document from Firestore
         deleteDoc(doc(database, 'current', currentDocumentId))
-        .then(() => {
+            .then(() => {
+                console.log("Document successfully deleted!");
 
-          console.log("Document successfully deleted!");
-        }
-        ).catch((error) => {
-          console.error("Error removing document: ", error);
-        });
-        if (mode){
-          navigation.navigate('FPQuestions', {projectId:project.project_id,project:project,user:user});
-              }
-              else{
-                navigation.navigate('FinishScreen', {project:project, user:user});
-
-              }
-      }
-
+                // Check if nextIndex is equal to the length of usecases (last element)
+                if (nextIndex === usecases.length) {
+                    console.log("No next element");
+                    navigation.navigate('FinishScreen', {
+                        project,
+                        user
+                    });
+                } else if (nextIndex < usecases.length) {
+                    // Navigate to the next use case in the list
+                    const nextUseCase = usecases[nextIndex];
+                    navigation.navigate('Usecase', {
+                        usecase: nextUseCase,
+                        usecasesData: usecases,
+                        project,
+                        user
+                    });
+                } else {
+                    console.log("Invalid nextIndex:", nextIndex);
+                }
+            })
+            .catch((error) => {
+                console.error("Error removing document: ", error);
+            });
     } else {
-      console.log("Current backlog not found in array");
+        console.log("Current use case not found in array");
     }
-  };
+};
+
+
 
 
   return (
@@ -387,7 +384,7 @@ export default function Chat(props) {
                           getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
                             console.log('File available at', downloadURL);
 
-                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(),  downloadURL: downloadURL, user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300' } }];
+                            const previousMessages = [{ _id: new Date().getTime(), createdAt: new Date(), downloadURL: downloadURL, user: { _id: auth?.currentUser?.email, avatar: 'https://i.pravatar.cc/300' } }];
                             onSend(previousMessages);
 
                           });

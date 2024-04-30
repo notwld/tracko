@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { auth, database, app } from '../config/firebase';
 import { getStorage, ref } from 'firebase/storage';
-import { orderBy, query, collection, onSnapshot, addDoc } from 'firebase/firestore';
+import { orderBy, query, collection, onSnapshot, addDoc, updateDoc, doc, getDocs, deleteDoc } from 'firebase/firestore';
 import { uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import baseUrl from "../config/baseUrl"
 
@@ -138,7 +138,7 @@ export default function PokerPlaning() {
                                 user: {
                                     _id: user.email || "",
                                     avatar: 'https://i.pravatar.cc/300',
-                                
+
                                 },
                                 username: user.username
                             };
@@ -167,7 +167,8 @@ export default function PokerPlaning() {
         audio.play();
     };
 
-
+    const [currentFP, setCurrentFP] = useState(null);
+    const [storypointsWithFP, setStorypointsWithFP] = useState([]);
 
     useEffect(() => {
         const collectionRef = collection(database, 'chats');
@@ -201,7 +202,17 @@ export default function PokerPlaning() {
             console.log(currentBacklog);
             setCurrent(currentBacklog[0]); // Assuming there is only one document in the current collection
         });
-
+        const currentRef2 = collection(database, 'currentFP');
+        const currentQuery2 = onSnapshot(currentRef2, (querySnapshot) => {
+            const currentBacklog = [];
+            querySnapshot.forEach((doc) => {
+                currentBacklog.push({
+                    ...doc.data(),
+                });
+            });
+            console.log(currentBacklog);
+            setCurrentFP(currentBacklog[0]); // Assuming there is only one document in the current collection});
+        });
         const storyPointsRef = collection(database, 'storypoints');
         const storyPointsQuery = onSnapshot(storyPointsRef, (querySnapshot) => {
             const storyPointsData = [];
@@ -212,11 +223,23 @@ export default function PokerPlaning() {
             });
             setStoryPoints(storyPointsData);
         });
+        const storyPointsRef2 = collection(database, 'storypointsWithFP');
+        const storyPointsQuery2 = onSnapshot(storyPointsRef2, (querySnapshot) => {
+            const storyPointsData = [];
+            querySnapshot.forEach((doc) => {
+                storyPointsData.push({
+                    ...doc.data(),
+                });
+            });
+            setStorypointsWithFP(storyPointsData);
+        });
 
         return () => {
             q();
             currentQuery();
             storyPointsQuery();
+            storyPointsQuery2();
+            currentQuery2();
         };
     }, []);
     const sendMessage = async (e) => {
@@ -256,6 +279,46 @@ export default function PokerPlaning() {
     }
 
     const [selectedTeam, setSelectedTeam] = useState([])
+
+    
+// const handleMethod = async (method) => {
+//     try {
+//         const methodsCollectionRef = collection(database, 'methods');
+//         const methodsQuerySnapshot = await getDocs(methodsCollectionRef);
+//         const existingMethodDoc = methodsQuerySnapshot.docs.find(doc => doc.data().method === method);
+
+//         if (existingMethodDoc) {
+//             // If the method already exists, update its timestamp
+//             const methodDocRef = doc(database, 'methods', existingMethodDoc.id);
+//             await updateDoc(methodDocRef, { method: method, timestamp: new Date() });
+//             console.log("Method updated:", method);
+//         } else {
+//             // If the method doesn't exist, add it to the collection
+//             await addDoc(collection(database, 'methods'), { method: method, timestamp: new Date() });
+//             console.log("New method added:", method);
+//         }
+//     } catch (error) {
+//         console.error("Error handling method:", error);
+//     }
+// };
+const [method, setMethod] = useState(null);
+const handleMethod = async (method) => {
+    try {
+        setMethod(method);
+        console.log("__________________________", method);
+        const methodsCollectionRef = collection(database, 'methods');
+        const methodsQuerySnapshot = await getDocs(methodsCollectionRef);
+
+        // delete all existing methods
+        methodsQuerySnapshot.forEach(async (doc) => {
+            await deleteDoc(doc.ref);
+        }   );
+        await addDoc(collection(database, 'methods'), { method: method, timestamp: new Date() });
+        console.log("New method added:", method);
+    } catch (error) {
+        console.error("Error handling method:", error);
+    }
+};
     return (
         <div className='container my-0 px-0 ps-4' >
 
@@ -312,9 +375,36 @@ export default function PokerPlaning() {
                         Invite Code: {code.inviteCode}
                     </p>
                 </div>}
+                <div className="col">
+                    <div className="form-check">
+                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" onClick={() => handleMethod('FP Metrices')} />
+                        <label className="form-check-label" for="flexRadioDefault1" >
+                            FP Metrices
+                        </label>
+                    </div>
+
+                </div>
+                <div className="col">
+                    <div className="form-check">
+                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" onClick={() => handleMethod('User Story')} />
+                        <label className="form-check-label" for="flexRadioDefault1" >
+                            User Story
+                        </label>
+                    </div>
+
+                </div>
+                <div className="col">
+                    <div className="form-check">
+                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" onClick={() => handleMethod('Usecase Points')} />
+                        <label className="form-check-label" for="flexRadioDefault2">
+                            Usecase Points
+                        </label>
+                    </div>
+                </div>
             </div>
+
             {session && <><div className="row my-2">
-                {current && (
+                {method==="User Story"&&current && (
                     <div className="col">
                         <div className="card">
                             <div className="card-body">
@@ -323,15 +413,100 @@ export default function PokerPlaning() {
                         </div>
                     </div>
                 )}
+                {method==="FP Metrices"&&currentFP && (
+                  <div className="col">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="card-content">{currentFP.title}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+
+                )}
             </div>
                 <div className="row my-2">
                     {
-                        storyPoints?.length > 0 && storyPoints.map((point, i) => (
+                        method==="FP Metrices"&&storypointsWithFP?.length > 0 && storypointsWithFP.map((point, i) => (
+                            point?.product_backlog_id == currentFP?.product_backlog_id && <div className="col" key={i}>
+                                <div className="card my-2" >
+                                    <div className="card-body text-center">
+                                        {point.assignedBy + " assigned story point " + point.storyPoint}
+                                     
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    }
+                    {
+                        method==="User Story"&&storyPoints?.length > 0 && storyPoints.map((point, i) => (
                             point?.product_backlog_id == current?.product_backlog_id && <div className="col" key={i}>
                                 <div className="card my-2" >
                                     <div className="card-body text-center">
                                         {point.assignedBy + " assigned story point " + point.storyPoint}
 
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    }
+                    {
+                        method==="FP Metrices"&&storypointsWithFP?.length > 0 && storypointsWithFP.map((point, i) => (
+                            point?.product_backlog_id == currentFP?.product_backlog_id && <div className="col" key={i}>
+                                <div className="card my-2" >
+                                    <div className="card-body text-center">
+                                        {point.assignedBy + " assigned story point " + point.storyPoint}
+                                        <p>Inputs</p>
+                                        {
+                                            point.metricsData.inputs && point.metricsData.inputs.map((input, i) => (
+                                                <div key={i}>
+                                                    <div className="row">
+                                                    <span>{input.text} - {input.complexity}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        }
+                                            <p>Outputs</p>
+                                        {
+                                            point.metricsData.outputs && point.metricsData.outputs.map((outputs, i) => (
+                                                <div key={i}>
+                                                    <div className="row">
+
+                                                    <span>{outputs.text} - {outputs.complexity}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        }
+                                            <p>Files</p>
+                                        {
+                                            point.metricsData.files && point.metricsData.files.map((files, i) => (
+                                                <div key={i}>
+                                                    <div className="row">
+                                                    <span>{files.text} - {files.complexity}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        }
+                                            <p>Inquiries</p>
+                                        {
+                                            point.metricsData.inquiries && point.metricsData.inquiries.map((inquiries, i) => (
+                                                <div key={i}>
+                                                    <div className="row">
+                                                    <span>{inquiries.text} - {inquiries.complexity}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        }
+                                            <p>External Interfaces</p>
+                                        {
+                                            point.metricsData.externalInterfaces && point.metricsData.externalInterfaces.map((externalInterfaces, i) => (
+                                                <div key={i}>
+                                                    <div className="row">
+                                                    <span>{externalInterfaces.text} - {externalInterfaces.complexity}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        }
                                     </div>
                                 </div>
                             </div>
