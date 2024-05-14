@@ -3,16 +3,18 @@ import "../stylesheets/product_backlog.css"
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboard } from "@fortawesome/free-regular-svg-icons"
 import { faPencil } from '@fortawesome/free-solid-svg-icons'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import baseUrl from "../config/baseUrl"
 import { addDoc, collection, doc, updateDoc, onSnapshot, query, where, getDocs, getDoc, deleteDoc } from "firebase/firestore";
 import { auth, database, app } from '../config/firebase';
 import FPModal from '../components/FPModal'
 import UseCaseModal from '../components/UseCaseModal'
+import Sprint from '../components/Sprint'
 
 export default function ProductBaclogs() {
     const location = useLocation();
     const navigate = useNavigate();
+    const [showSprintModal, setShowSprintModal] = useState(false)
     const [showUseCaseModal, setshowUseCaseModal] = useState(false)
     const [user, setUser] = useState(localStorage.getItem('user'))
     const [token, setToken] = useState(localStorage.getItem('token'))
@@ -36,6 +38,9 @@ export default function ProductBaclogs() {
         fetchBacklogs()
         fetchUseCases()
     }, [])
+    const close = () => {
+        setShowSprintModal(false)
+    }
     const handleModalClose = () => {
         setshowUseCaseModal(false)
     }
@@ -337,16 +342,18 @@ export default function ProductBaclogs() {
     }
 
     return (
-        <div className='container my-0 px-0 ps-4' >
+        <div className='container my-5' style={{
+            paddingLeft: '180px',
+        }} >
             <UseCaseModal show={showUseCaseModal} handleModalClose={handleModalClose} projId={projectId} fetchUsecases={fetchUseCases} />
-
+            {showSprintModal && <Sprint initialBacklogs={backlog} onClose={close} />}
             <div className="row  mb-0 pb-0">
                 <div className="col" >
                     <div className="row mt-4">
                         <div className="container">
                             <nav aria-label="breadcrumb">
                                 <ol className="breadcrumb">
-                                    <li className="breadcrumb-item"><a href="#">Home</a></li>
+                                    <li className="breadcrumb-item"><Link to={'/home'}>Home</Link></li>
                                     <li className="breadcrumb-item active" aria-current="page">Product Backlogs</li>
                                 </ol>
                             </nav>
@@ -379,7 +386,7 @@ export default function ProductBaclogs() {
                                         Initiate Poker Planning
                                     </button>}
 
-                                    <button className="btn mx-2 btn-sm btn-primary">
+                                    <button className="btn mx-2 btn-sm btn-primary"  data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={() => { setShowSprintModal(true) }}>
                                         Start Sprint
                                     </button>
 

@@ -1,23 +1,6 @@
 version: '3'
 
 services:
-  db:
-    image: mysql:latest
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: tracko
-      MYSQL_PASSWORD: root
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./db:/var/lib/mysql
-    networks:
-      - mynetwork 
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      timeout: 10s
-      retries: 5
 
   backend:
     build: ./backend
@@ -34,7 +17,6 @@ services:
       - ./backend/prisma/schema.prisma:/app/backend/prisma/schema.prisma
     networks:
       - mynetwork
-    command: sh -c "[ ! -f /app/backend/migration-done ] && npx prisma db push && touch /app/backend/migration-done; node /app/backend/index.js"
 
   frontend:
     build: ./frontend

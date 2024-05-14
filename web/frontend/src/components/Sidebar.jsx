@@ -1,17 +1,16 @@
 import { Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import '../stylesheets/nav.css';
-import baseUrl from "../config/baseUrl"
+import "../stylesheets/nav.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faClipboardList, faCubesStacked, faList, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 
 export default function Sidebar() {
-  const location = useLocation();
-  const [user, setUser] = useState( null);
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [project , setProject] = useState(null)
+    const location = useLocation();
+    const [user, setUser] = useState(null);
+    const [project, setProject] = useState(null);
+    const [showSidebar, setShowSidebar] = useState(true);
 
-
+   
   useEffect(() => {
     setShowSidebar(location.pathname !== '/home');
     
@@ -23,50 +22,32 @@ export default function Sidebar() {
     }
   }, [location]);
 
-  return (
-    <>
-      {user && showSidebar && (
-        <div className='container sidebar'>
-          <div className="d-flex justify-content-start align-items-center my-2 mx-0">
-            <div className="container-fluid inner-siderbar">
-              <div className="items">
-                
-                <div className="container item my-1 d-flex flex-column justify-content-center align-items-center w-100">
-                  <div className="mb-4">
-                    <Link to={`project/${project.project_id}/backlogs`}><FontAwesomeIcon icon={faClipboardList} size="2x" style={{
-                      backgroundColor: '#dcd9d9',
-                      padding: '10px',
-                      borderRadius: '17%',
-                    }}
-                    /></Link>
-                  </div>
-                  <div className="mb-4">
-                    <Link to={`project/${project.project_id}/poker-planning`}><FontAwesomeIcon icon={faCubesStacked} size="2x" style={{
-                      backgroundColor: '#dcd9d9',
-                      padding: '10px',
-                      borderRadius: '17%',
-                    }}/></Link>
-                  </div>
-                  <div className="mb-4">
-                    <Link to={`project/${project.project_id}/board`}><FontAwesomeIcon icon={faList} size="2x" style={{
-                      backgroundColor: '#dcd9d9',
-                      padding: '10px',
-                      borderRadius: '17%',
-                    }}/></Link>
-                  </div>
-                  <div className="mb-4">
-                    <Link to={`project/${project.project_id}/board`}><FontAwesomeIcon icon={faLayerGroup} size="2x" style={{
-                      backgroundColor: '#dcd9d9',
-                      padding: '10px',
-                      borderRadius: '17%',
-                    }}/></Link>
-                  </div>
+    return (
+        <>
+            {user && showSidebar && (
+                <div className='sidebar-container'>
+                    <div className="sidebar-content">
+                        <div className="sidebar-header">
+                            <h2 className="sidebar-title">{project.title}</h2>
+                        </div>
+                        <div className="sidebar-items">
+                            {project && [
+                                { to: `project/${project.project_id}/backlogs`, icon: faClipboardList, label: 'Backlogs' },
+                                { to: `project/${project.project_id}/poker-planning`, icon: faCubesStacked, label: 'Poker Planning' },
+                                { to: `project/${project.project_id}/board`, icon: faList, label: 'Board' },
+                                { to: `project/${project.project_id}/board`, icon: faLayerGroup, label: 'Layers' },
+                            ].map((item, index) => (
+                                <div className="sidebar-item" key={index}>
+                                    <Link to={item.to} className="sidebar-link">
+                                        <FontAwesomeIcon icon={item.icon} className="sidebar-icon" />
+                                        <span className="sidebar-text">{item.label}</span>
+                                    </Link>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
+            )}
+        </>
+    );
 }

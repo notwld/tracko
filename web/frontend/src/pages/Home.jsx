@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import baseUrl from "../config/baseUrl"
+import baseUrl from "../config/baseUrl";
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -10,22 +11,22 @@ export default function Home() {
   const [projectDescription, setProjectDescription] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [flashMessage, setFlashMessage] = useState(null);
-  const [token, setToken] = useState(null)
-  const navigation = useNavigate();
-  const [notfications, setNotfications] = useState([])
-  const [isAccepted, setIsAccepted] = useState(false)
+  const [token, setToken] = useState(null);
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
+  const [isAccepted, setIsAccepted] = useState(false);
 
   const fetchProjects = useCallback(async () => {
     try {
-      const response = await fetch(baseUrl+'/api/project/list', {
+      const response = await fetch(`${baseUrl}/api/project/list`, {
         method: 'POST',
         headers: {
-          'Content-Type': "application/json",
+          'Content-Type': 'application/json',
           'Authorization': `${token}`,
         },
         body: JSON.stringify({
-          "user_id": user.user_id,
-        })
+          user_id: user.user_id,
+        }),
       });
 
       if (!response.ok) {
@@ -33,130 +34,119 @@ export default function Home() {
       }
 
       const projectData = await response.json();
-      console.log(projectData);
       setProjects(projectData.projects);
     } catch (error) {
       console.error(error);
     }
-  }, [token]);
-  const fetchNotifications = async () => {
-    fetch(baseUrl+'/api/notifications/list', {
-      method: 'POST',
-      headers: {
-        'Content-Type': "application/json",
-        'Authorization': `${token}`,
-      },
-      body: JSON.stringify({
-        'user_id': user.user_id,
-      }),
-    }).then(res => res.json())
-      .then(data => {
-        console.log(data)
-        setNotfications(data.notifications)
-      })
-      .catch(err => {
-        console.log(err)
-      })
-  }
-  useEffect(() => {
-    
-    const user = localStorage.getItem('user');
-    if (user) {
-      // localStorage.removeItem('project');
-      setUser(JSON.parse(user));
-      const authToken = localStorage.getItem('token');
-      const userType = localStorage.getItem('userType');
-      setToken(authToken);
-      setUserType(JSON.parse(userType));
-      fetchProjects();
-      fetchNotifications();
+  }, [token, user]);
 
-    }
-    else{
-      window.location.href="/login"
-    }
-  }, [fetchProjects]);
-
-  const handleInvitationAccept = async (invitation) => {
-    console.log(invitation[0])
+  const fetchNotifications = useCallback(async () => {
     try {
-      const response = await fetch(baseUrl+'/api/team/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': "application/json",
-          'Authorization': `${token}`,
-        },
-        body: JSON.stringify({
-          'project_id': invitation[0].project_id, 
-          'product_owner_id': invitation[0].product_owner_id, 
-          'developer_id': invitation[0].developer_id, 
-          'invitation_id': invitation[0].invitation_id
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to accept invitation');
-      }
-      setIsAccepted(true)
-      const projectData = await response.json();
-      console.log(projectData);
-      fetchNotifications();
-      fetchProjects();
-      setProjects(projectData.projects);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  const handleCreateProject = async () => {
-    try {
-      const response = await fetch(baseUrl+'/api/project/create', {
+      const response = await fetch(`${baseUrl}/api/notifications/list`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `${token}`,
         },
         body: JSON.stringify({
-          "title": projectTitle,
-          "description": projectDescription,
-          "product_owner_id": userType.product_owner_id,
-        
+          user_id: user.user_id,
         }),
       });
 
       if (!response.ok) {
-        setShowModal(false);
-        setFlashMessage('Failed to create project');
-        // setProjectTitle('');
-        // setProjectDescription('');
-        console.log(response);
-
-        throw new Error('Failed to create project');
+        throw new Error('Failed to fetch notifications');
       }
 
-      // Continue with successful response handling
-      console.log('Project created successfully');
-      setShowModal(false);
-      setFlashMessage('Project created successfully');
-      setProjectTitle('');
-      setProjectDescription('');
-      fetchProjects();
+      const data = await response.json();
+      setNotifications(data.notifications);
     } catch (error) {
       console.error(error);
-      console.log('An error occurred while creating the project');
+    }
+  }, [token, user]);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    const authToken = localStorage.getItem('token');
+    const storedUserType = localStorage.getItem('userType');
+
+    if (storedUser && authToken && storedUserType) {
+      setUser(JSON.parse(storedUser));
+      setToken(authToken);
+      setUserType(JSON.parse(storedUserType));
+      fetchProjects();
+      fetchNotifications();
+    } else {
+      navigate("/login");
+    }
+  }, [fetchProjects, fetchNotifications, navigate]);
+
+  const handleInvitationAccept = async (invitation) => {
+    try {
+      const response = await fetch(`${baseUrl}/api/team/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`,
+        },
+        body: JSON.stringify({
+          project_id: invitation.project_id,
+          product_owner_id: invitation.product_owner_id,
+          developer_id: invitation.developer_id,
+          invitation_id: invitation.invitation_id,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to accept invitation');
+      }
+
+      setIsAccepted(true);
+      await fetchNotifications();
+      await fetchProjects();
+    } catch (error) {
+      console.error(error);
     }
   };
 
+  const handleCreateProject = async () => {
+    try {
+      const response = await fetch(`${baseUrl}/api/project/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`,
+        },
+        body: JSON.stringify({
+          title: projectTitle,
+          description: projectDescription,
+          product_owner_id: userType.product_owner_id,
+        }),
+      });
+
+      if (!response.ok) {
+        setFlashMessage('Failed to create project');
+        throw new Error('Failed to create project');
+      }
+
+      setFlashMessage('Project created successfully');
+      setShowModal(false);
+      setProjectTitle('');
+      setProjectDescription('');
+      await fetchProjects();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const handleNavigateToProject = (project) => {
     localStorage.setItem('project', JSON.stringify(project));
-    navigation(`/project/${project.project_id}`, { state: { project } });
+    navigate(`/project/${project.project_id}`, { state: { project } });
   };
 
   return (
     <>
       {user && (
-        <div className="container my-0 px-0 ps-4">
+        <div className="container my-5">
           {flashMessage && (
             <div className="alert alert-success" role="alert">
               {flashMessage}
@@ -164,51 +154,32 @@ export default function Home() {
           )}
 
           {showModal && (
-            <div className="modal pt-5" tabIndex="-1" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
               <div className="modal-dialog">
                 <div className="modal-content">
                   <div className="modal-header">
                     <h5 className="modal-title">Create a new project</h5>
-                    <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={() => setShowModal(false)}></button>
+                    <button type="button" className="btn-close" aria-label="Close" onClick={() => setShowModal(false)}></button>
                   </div>
-                  <div className="modal-body d-flex justify-content-center align-items-center">
-                    <div className="row">
-                      <div className="col">
-                        <div className="row mb-3">
-                          <div className="col">
-                            <input
-                              type="text"
-                              className="form-control"
-                              id="projectTitle"
-                              value={projectTitle}
-                              onChange={(e) => setProjectTitle(e.target.value)}
-                              placeholder="Enter project title"
-                              formNoValidate={false}
-                            />
-                          </div>
-                        </div>
-                        <div className="row mb-3">
-                          <div className="col">
-                            <textarea
-                              className="form-control"
-                              id="projectDescription"
-                              value={projectDescription}
-                              onChange={(e) => setProjectDescription(e.target.value)}
-                              placeholder="Enter project description"
-                            />
-                          </div>
-                        </div>
-                        {/* <div className="row mb-3">
-                          <div className="col">
-                            <select className="form-select" aria-label="Default select example">
-                              <option selected>Select Type</option>
-                              <option value="1">FP Metrices</option>
-                              <option value="2">User Stories</option>
-                              <option value="3">COCOMO</option>
-                            </select>
-                          </div>
-                        </div> */}
-                      </div>
+                  <div className="modal-body">
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="projectTitle"
+                        value={projectTitle}
+                        onChange={(e) => setProjectTitle(e.target.value)}
+                        placeholder="Enter project title"
+                      />
+                    </div>
+                    <div className="mb-3">
+                      <textarea
+                        className="form-control"
+                        id="projectDescription"
+                        value={projectDescription}
+                        onChange={(e) => setProjectDescription(e.target.value)}
+                        placeholder="Enter project description"
+                      />
                     </div>
                   </div>
                   <div className="modal-footer">
@@ -226,87 +197,65 @@ export default function Home() {
               <h1 className="display-6">Projects</h1>
             </div>
           </div>
-          <>
-            <div className="row my-3 m-0 " style={{width:"fit-content"}}>
-              {user.role === "Product Owner" && <div className="col">
-                <div className="d-flex justify-content-between align-items-center w-100 mb-3" style={{ width: '100%!important' }}>
-                  <div>
-                    <button
-                      className="btn py-5 px-4"
-                      style={{
-                        border: '1.5px solid grey',
-                        fontSize: '0.96rem',
-                        cursor: 'pointer',
-                      }}
-                      onClick={() => setShowModal(true)}
-                    >
-                      + Create Project
-                    </button>
-                  </div>
-                </div>
-              </div>}
-              {projects?.length > 0 ? projects.map((item, index) => (
-                <div className="col" key={index}>
-                  <div className="col d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                      <div
-                        className="py-5 px-5"
-                        style={{
-                          border: '1.5px solid grey',
-                          borderRadius: '5px',
-                          cursor: 'pointer',
-                        }}
-                        onClick={() => handleNavigateToProject(item)}
-                      >
-                        <span>{item.title}</span>
-                        <br />
-                        <span className="text-muted">{item.description}</span>
-                        {/* <br /> */}
-                      </div>
+          <div className="row my-3">
+            {user.role === "Product Owner" && (
+              <div className="col">
+                <button className="btn btn-outline-primary" onClick={() => setShowModal(true)}>
+                  + Create Project
+                </button>
+              </div>
+            )}
+            
+          </div>
+          <div className="row">
+          {projects.length > 0 ? (
+              projects.map((project, index) => (
+                <div className="col-md-4 mb-3" key={index}>
+                  <div className="card h-100" onClick={() => handleNavigateToProject(project)}>
+                    <div className="card-body">
+                      <h5 className="card-title">{project.title}</h5>
+                      <p className="card-text text-muted">{project.description}</p>
                     </div>
                   </div>
                 </div>
-              )) : <div className="col text-center">
-                <div className="d-flex justify-content-center align-items-center w-100 mb-3" style={{ width: '100%!important', textAlign: "center" }}>
-
-                  <h1 className="lead text-center" style={{ textAlign: "center" }}>{
-                    user.role === "Product Owner" ? "Create a new project" : "You have not been assigned to any project"
-                  }
-                  </h1>
-                </div>
+              ))
+            ) : (
+              <div className="col text-center">
+                <p className="lead">
+                  {user.role === "Product Owner" ? "Create a new project" : "You have not been assigned to any project"}
+                </p>
               </div>
-              }
-            </div>
-          </>
-          <div className="row">
-            <div className="col my-3">
+            )}
+          </div>
+          <div className="row mt-4">
+            <div className="col">
               <h1 className="display-6">Notifications</h1>
             </div>
-            {
-              notfications?.length > 0 ? notfications.map((item, index) => (
-                <div className="row mb-3" key={index}>
+           
+          </div>
+          <div className="row">
+          {notifications.length > 0 ? (
+              notifications.map((notification, index) => (
+                <div className="col-12 mb-3" key={index}>
                   <div className="card">
-                    <div className="card-content p-2 d-flex justify-content-between align-items-center">
-                      <span>
-                        {item.message}
-                      </span>
-                      <button className="btn btn-sm btn-primary" onClick={() => { handleInvitationAccept(item.invitation) }} disabled={item.invitation[0].status==="accepted"}>
-                        {item.invitation[0].status==="accepted" ? "Accepted" : "Accept"}
+                    <div className="card-body d-flex justify-content-between align-items-center">
+                      <p className="card-text mb-0">{notification.message}</p>
+                      <button
+                        className="btn btn-sm btn-primary"
+                        onClick={() => handleInvitationAccept(notification.invitation)}
+                        disabled={notification.invitation.status === "accepted"}
+                      >
+                        {notification.invitation.status === "accepted" ? "Accepted" : "Accept"}
                       </button>
                     </div>
                   </div>
                 </div>
-              )) :
-                <div className="row text-center">
-                  <div className="d-flex justify-content-center align-items-center w-100 mb-3" style={{ width: '100%!important', textAlign: "center" }}>
-
-                    <h1 className="lead text-center" style={{ textAlign: "center" }}>
-                      You have no notifications (yet)
-                    </h1>
-                  </div>
-                </div>
-
-            }
+              ))
+            ) : (
+              <div className="col text-center">
+                <p className="lead">You have no notifications (yet)</p>
+              </div>
+            )}
           </div>
         </div>
       )}

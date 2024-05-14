@@ -48,6 +48,15 @@ model estimates {
   poker_planning     poker_planning[]
 }
 
+model interrupts {
+  id      Int    @id @default(autoincrement())
+  user_id Int
+  name    String
+  hours   Int
+  minutes Int
+  users   users  @relation(fields: [user_id], references: [user_id])
+}
+
 model poker_planning {
   poker_planning_id  Int              @id @default(autoincrement())
   session_id         Int?
@@ -235,6 +244,7 @@ model users {
   product_owner product_owner?
   session       session[]
   notification  notification[]
+  interrupts    interrupts[]
 }
 
 model notification {

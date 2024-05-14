@@ -161,11 +161,7 @@ router.get('/profile', authorize, async (req, res) => {
 
     const user = await prisma.users.findUnique({
       where: { user_id: userId },
-      include: {
-        product_owner: true,
-        scrum_master: true,
-        developer: true,
-      },
+      
     });
 
     if (!user) {
@@ -194,7 +190,70 @@ router.get('/profile', authorize, async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+router.put('/profile', authorize, async (req, res) => {
+  try {
+    const userId = req.session.user; // Assuming you store the user ID in the session
+    const { name, email, phone, password, role, velocity } = req.body;
 
+    const updatedUser = await prisma.users.update({
+      where: { user_id: userId },
+      data: {
+        username: name,
+        email,
+        phone,
+        password, // Make sure to hash the password before storing it
+        role,
+        developer: role === 'Developer' ? {
+          update: { velocity_per_sprint: velocity },
+        } : undefined,
+      },
+    });
+
+    res.status(200).json({ message: 'Profile updated successfully', user: updatedUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Add interrupt hours
+router.post('/profile/interrupts', authorize, async (req, res) => {
+  try {
+    const userId = req.session.user; // Assuming you store the user ID in the session
+    const { name, hours, minutes } = req.body;
+
+    // Assuming you have a model for interrupts, if not create one
+    const interrupt = await prisma.interrupts.create({
+      data: {
+        user_id: userId,
+        name,
+        hours,
+        minutes,
+      },
+    });
+
+    res.status(201).json({ message: 'Interrupt added successfully', interrupt });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Remove interrupt hours
+router.delete('/profile/interrupts/:id', authorize, async (req, res) => {
+  try {
+    const interruptId = parseInt(req.params.id);
+
+    await prisma.interrupts.delete({
+      where: { id: interruptId },
+    });
+
+    res.status(200).json({ message: 'Interrupt removed successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 router.get('/logout', (req, res) => {
   // if (!req.session.user) {
   //   return res.status(400).json({ error: 'User is not logged in' });

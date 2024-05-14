@@ -17,7 +17,7 @@ export default function Board() {
     }, []);
     return (
         <>
-            {user && (<div className='container my-0 px-0 ps-4' >
+            {user && (<div className='container my-5' style={{ paddingLeft: "180px",}}>
                 <div className="row mt-4">
                     <div className="container">
                         <nav aria-label="breadcrumb">
