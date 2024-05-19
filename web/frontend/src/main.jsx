@@ -17,6 +17,8 @@ import Cocomo from './components/Cocomo.jsx'
 import Eaf from './components/EAF.jsx'
 import Effort from './components/Effort.jsx'
 import Conversion from './components/Conversion.jsx'
+import BasicCocomo from './pages/Traditional/BasicCocomo.jsx'
+import FpTraditional from './pages/Traditional/FpTraditional.jsx'
 
 
 const routes = createBrowserRouter([
@@ -75,7 +77,16 @@ const routes = createBrowserRouter([
       {
         path: "/Conversion",
         element: <Conversion/>
+      },
+      {
+        path: "/BasicCocomo",
+        element: <BasicCocomo/>
+      },
+      {
+        path: "/FpTraditional",
+        element: <FpTraditional/>
       }
+
     ]
   }
 ])

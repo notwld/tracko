@@ -22,7 +22,6 @@ model developer {
   developer_id        Int            @id @default(autoincrement())
   velocity_per_sprint Int?
   availability_hours  Int?
-  interrupt_hours     Int?
   estimates_id        Int?
   users               users          @relation(fields: [developer_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "developer_ibfk_1")
   estimates           estimates?     @relation(fields: [estimates_id], references: [estimates_id], onDelete: NoAction, onUpdate: NoAction, map: "developer_ibfk_2")
@@ -44,17 +43,19 @@ model estimates {
   estimates_id       Int              @id @default(autoincrement())
   story_points       Int?
   product_backlog_id Int?
-  developer          developer[]
+  weight_factor      Int?
   poker_planning     poker_planning[]
+  developer          developer[]
 }
 
 model interrupts {
-  id      Int    @id @default(autoincrement())
-  user_id Int
-  name    String
-  hours   Int
-  minutes Int
-  users   users  @relation(fields: [user_id], references: [user_id])
+  id          Int    @id @default(autoincrement())
+  name        String
+  hours       Int
+  minutes     Int
+  projectId   Int
+  developerId Int
+
 }
 
 model poker_planning {
@@ -244,7 +245,6 @@ model users {
   product_owner product_owner?
   session       session[]
   notification  notification[]
-  interrupts    interrupts[]
 }
 
 model notification {

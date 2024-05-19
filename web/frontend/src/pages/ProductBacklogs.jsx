@@ -461,15 +461,7 @@ export default function ProductBaclogs() {
                                             autoFocus
                                         />
                                     </div>
-                                    {/* <div className="col">
-                                       
-                                        <select className="form-select" aria-label="Default select example">
-                                            <option selected>Select Assignee</option>
-                                            <option value="1">Farhan</option>
-                                            <option value="2">Bajwa</option>
-                                            <option value="3">Ameen</option>
-                                        </select>
-                                    </div> */}
+                                   
 
                                 </div>
                                 <div className="row">
@@ -498,15 +490,7 @@ export default function ProductBaclogs() {
 
                                 </div>
                                 <div className="row my-3" style={{ width: "fit-content" }}>
-                                    {/* <input
-                                            type="text"
-                                            className="form-control"
-                                            placeholder="Enter Description"
-                                            // onBlur={() => { handleOnBlur("backlog") }}
-                                            onChange={(e) => setBacklogData({ description: e.target.value })}
-                                            aria-label="Issue details"
-                                        // autoFocus
-                                        /> */}
+                                    
 
                                     <textarea
                                         className="form-control"
@@ -524,7 +508,6 @@ export default function ProductBaclogs() {
                                             Create
                                         </button>
                                     </div>
-                                    {/* // cancel  */}
                                     <div className="col">
                                         <button className="btn btn-sm btn-danger" onClick={() => { handleOnBlur("backlog") }}>
                                             Cancel
@@ -903,7 +886,6 @@ export default function ProductBaclogs() {
                                                 Update
                                             </button>
                                         </div>
-                                        {/* // cancel  */}
                                         <div className="col">
                                             <button className="btn btn-sm btn-danger" onClick={() => {
                                                 editMode.what === "description" ? setEditMode({ what: "description", status: false }) :

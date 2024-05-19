@@ -46,8 +46,8 @@ router.get('/:project_id', authorize, async (req, res) => {
 // POST /api/team
 
 router.post('/add', authorize, async (req, res) => {
-    console.log(req.body);
     const { project_id, product_owner_id, developer_id, invitation_id } = req.body;
+    console.log("Received Request Body: ", req.body); // Log the request body
 
     try {
         if (!project_id || !product_owner_id || !developer_id) {
@@ -116,6 +116,7 @@ router.post('/add', authorize, async (req, res) => {
                 }
             },
         });
+
         // update the invitation status
         const updatedInvitation = await prisma.invitation.update({
             where: {
@@ -126,8 +127,7 @@ router.post('/add', authorize, async (req, res) => {
             },
         });
 
-        //update project
-
+        // update project
         const project_update = await prisma.project.update({
             where: {
                 project_id: project_id
@@ -135,7 +135,7 @@ router.post('/add', authorize, async (req, res) => {
             data: {
                 project_team_id: newTeam.project_team_id
             }
-        })
+        });
 
         res.status(201).json({ message: 'Team member added successfully', team: newTeam });
     } catch (error) {
@@ -143,7 +143,6 @@ router.post('/add', authorize, async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
-
 
 // POST invite
 

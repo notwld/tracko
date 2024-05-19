@@ -22,6 +22,7 @@ router.post('/list', authorize, async (req, res) => {
                 invitation:true
             }
         });
+        console.log(notifications);
         if (!notifications) {
             return res.status(404).json({ error: 'No notifications found' });
         }

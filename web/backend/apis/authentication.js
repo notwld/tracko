@@ -161,7 +161,7 @@ router.get('/profile', authorize, async (req, res) => {
 
     const user = await prisma.users.findUnique({
       where: { user_id: userId },
-      
+
     });
 
     if (!user) {
@@ -180,6 +180,7 @@ router.get('/profile', authorize, async (req, res) => {
     } else if (user.developer) {
       userType = 'Developer';
       userProfile = user.developer;
+    
     } else {
       userType = 'Unknown Role';
     }
@@ -218,20 +219,24 @@ router.put('/profile', authorize, async (req, res) => {
 
 // Add interrupt hours
 router.post('/profile/interrupts', authorize, async (req, res) => {
+  console.log("API HITTING")
   try {
     const userId = req.session.user; // Assuming you store the user ID in the session
-    const { name, hours, minutes } = req.body;
+    const { name, hours, minutes, projId } = req.body;
 
     // Assuming you have a model for interrupts, if not create one
     const interrupt = await prisma.interrupts.create({
       data: {
-        user_id: userId,
         name,
         hours,
         minutes,
+        
+        projectId:projId,
+        
+       developerId:userId,
       },
     });
-
+    console.log(interrupt);
     res.status(201).json({ message: 'Interrupt added successfully', interrupt });
   } catch (error) {
     console.error(error);
@@ -254,6 +259,23 @@ router.delete('/profile/interrupts/:id', authorize, async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
+router.post('/profile/interrupts/fetch', authorize, async (req, res) => {
+  try {
+    const { projId ,developerId} = req.body;
+    const interrupts = await prisma.interrupts.findMany({
+      where: {
+        projectId: projId,
+        developerId:req.session.user
+      },
+    });
+    console.log(interrupts);
+    res.status(200).json({ interrupts });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 router.get('/logout', (req, res) => {
   // if (!req.session.user) {
   //   return res.status(400).json({ error: 'User is not logged in' });
@@ -261,5 +283,67 @@ router.get('/logout', (req, res) => {
   req.session.destroy();
   res.status(200).json({ message: 'Logout successful' });
 });
+
+router.post("/profile/velocity",(req,res)=>{
+  const {velocity,developer_id} = req.body;
+  prisma.developer.update({
+    where:{
+      developer_id:developer_id
+    },
+    data:{
+      velocity_per_sprint:velocity
+    }
+  }).then((data)=>{
+    res.status(200).json({message:"Velocity updated successfully",data:data})
+  }).catch((error)=>{
+    res.status(500).json({error:"Internal Server Error"})
+  })
+})
+
+router.post("/profile/velocity/update",(req,res)=>{
+  const {velocity,developer_id} = req.body;
+  prisma.developer.update({
+    where:{
+      developer_id:developer_id
+    },
+    data:{
+      velocity_per_sprint:velocity
+    }
+  }).then((data)=>{
+    res.status(200).json({message:"Velocity updated successfully",data:data})
+  }).catch((error)=>{
+    res.status(500).json({error:"Internal Server Error"})
+  })
+})
+
+router.get("/profile/velocity/:developer_id",(req,res)=>{
+  const {developer_id} = req.params;
+  prisma.developer.findFirst({
+    where:{
+      developer_id:parseInt(developer_id)
+    }
+  }).then((data)=>{
+    res.status(200).json({message:"Velocity fetched successfully",data:data.velocity_per_sprint})
+  }).catch((error)=>{
+    res.status(500).json({error:"Internal Server Error"})
+  })
+})
+
+router.delete("/profile/velocity/:developer_id",(req,res)=>{
+  const {developer_id} = req.params;
+  prisma.developer.update({
+    where:{
+      developer_id:parseInt(developer_id)
+    },
+    data:{
+      velocity_per_sprint:null
+    }
+  }).then((data)=>{
+    res.status(200).json({message:"Velocity deleted successfully",data:data})
+  }).catch((error)=>{
+    res.status(500).json({error:"Internal Server Error"})
+  })
+})
+
 
 module.exports = router;

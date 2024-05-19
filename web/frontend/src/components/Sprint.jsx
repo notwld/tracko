@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import baseUrl from '../config/baseUrl';
 
 const ItemType = {
     ITEM: 'item'
@@ -46,13 +47,34 @@ const DropZone = ({ children, type }) => {
     );
 };
 
-const Sprint = ({ initialBacklogs,onClose }) => {
+const Sprint = ({ initialBacklogs, onClose }) => {
     const [sprintItems, setSprintItems] = useState([]);
     const [backlogs, setBacklogs] = useState([]);
+    const [sprintLength, setSprintLength] = useState('');
+    const [workingDays, setWorkingDays] = useState('');
+    const [availableDays, setAvailableDays] = useState('');
+    const [interruptHours, setInterruptHours] = useState('');
+    const [officeHours, setOfficeHours] = useState('');
+    const [projectId, setProjectId] = useState(JSON.parse(localStorage.getItem('project')).project_id);
 
     useEffect(() => {
         setBacklogs(initialBacklogs);
         console.log('Initial backlogs set:', initialBacklogs);
+        const fetchInterrupts = async () => {
+            await fetch(baseUrl+'/api/sprint/team/stats', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `${localStorage.getItem('token')}`
+                },
+
+                body: JSON.stringify({project_id:projectId}),
+            })
+            .then(response => response.json())
+            .then(data => setInterruptHours(data))
+            .catch(error => console.error('Error fetching team stats:', error));
+        };
+        fetchInterrupts();
     }, [initialBacklogs]);
 
     const moveItem = (id, from, to) => {
@@ -72,6 +94,14 @@ const Sprint = ({ initialBacklogs,onClose }) => {
         }
     };
 
+    const handleFormSubmit = (event) => {
+        event.preventDefault();
+        console.log('Sprint Length:', sprintLength);
+        console.log('Working Days:', workingDays);
+        console.log('Available Days:', availableDays);
+        console.log('Interrupt Hours:', interruptHours);
+    };
+
     return (
         <DndProvider backend={HTML5Backend}>
             <div className="modal fade show d-block" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -79,9 +109,97 @@ const Sprint = ({ initialBacklogs,onClose }) => {
                     <div className="modal-content">
                         <div className="modal-header">
                             <h5 className="modal-title" id="exampleModalLabel">Sprint Planning</h5>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={()=>onClose()}></button>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={onClose}></button>
                         </div>
                         <div className="modal-body">
+                            <form onSubmit={handleFormSubmit} className="mb-4">
+                                <div className="row mb-3">
+                                    <div className="col">
+                                        <label htmlFor="sprintLength" className="form-label">Sprint Length (weeks)</label>
+                                        <input
+                                            type="number"
+                                            className="form-control"
+                                            id="sprintLength"
+                                            value={sprintLength}
+                                            onChange={(e) => setSprintLength(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="col">
+                                        <label htmlFor="workingDays" className="form-label">Working Days in Sprint</label>
+                                        <input
+                                            type="number"
+                                            className="form-control"
+                                            id="workingDays"
+                                            value={workingDays}
+                                            onChange={(e) => setWorkingDays(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="row mb-3">
+                                    <div className="col">
+                                        <label htmlFor="availableDays" className="form-label">Available Days in Sprint</label>
+                                        <input
+                                            type="number"
+                                            className="form-control"
+                                            id="availableDays"
+                                            value={availableDays}
+                                            onChange={(e) => setAvailableDays(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    <div className="col">
+                                        <label htmlFor="availableDays" className="form-label">Office Hours</label>
+                                        <input
+                                            type="number"
+                                            className="form-control"
+                                            id="availableDays"
+                                            value={officeHours}
+                                            onChange={(e) => setOfficeHours(e.target.value)}
+                                            required
+                                        />
+                                    </div>
+                                    
+                                </div>
+                            </form>
+                            <div className="row">
+                                <div className="table table-bordered">
+                                    <table className="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Team Member</th>
+                                                <th scope="col">Availablity During Sprint (in Days)</th>
+                                                <th scope="col">Interrupt Hours</th>
+                                                <th scope="col">Interrupt Hours (per Week)</th>
+                                                <th scope="col">Availablity Hours (per Day)</th>
+                                                <th scope="col">Total Availablity Hours (in Sprint)</th>
+                                                
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {
+                                                Object.values(interruptHours).map((key) => (
+                                                    <tr key={key}>
+                                                        <td>
+                                                            {Object.keys(interruptHours).find(k => interruptHours[k] === key)}
+                                                        </td>
+                                                        <td>
+                                                            0
+                                                        </td>
+                                                       <td>
+                                                         {key}
+                                                       </td>
+                                                       <td>
+                                                         {key/workingDays}
+                                                       </td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                             <div className="row">
                                 <div className="col-6">
                                     <h4>Sprint</h4>
@@ -102,7 +220,7 @@ const Sprint = ({ initialBacklogs,onClose }) => {
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={()=>onClose()}>Close</button>
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={onClose}>Close</button>
                         </div>
                     </div>
                 </div>

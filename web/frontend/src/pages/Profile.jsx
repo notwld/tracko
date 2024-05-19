@@ -3,8 +3,8 @@ import baseUrl from "../config/baseUrl";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 const interruptType = [
-    'Sick time', 'Reviews and walk-throughs', 'Interviewing candidates', 'Meetings', 'Demonstrations', 
-    'Personnel issues', 'Phone calls', 'Special projects', 'Management review', 'Training Email', 
+    'Sick time', 'Reviews and walk-throughs', 'Interviewing candidates', 'Meetings', 'Demonstrations',
+    'Personnel issues', 'Phone calls', 'Special projects', 'Management review', 'Training Email',
     'Reviews and walk-throughs', 'Interviewing candidates', 'Task Switching', 'Bug fixing in current releases', "Others"
 ];
 
@@ -15,8 +15,12 @@ export default function Profile() {
     const [inputEvent, setInputEvent] = useState({ interrupt: false, otherInterrupts: false });
     const [additionalInterrupt, setAdditionalInterrupt] = useState('');
     const [flashMessage, setFlashMessage] = useState(null);
+    const [project, setProject] = useState(JSON.parse(localStorage.getItem('project')));
+    const [velocity, setVelocity] = useState(null);
 
     useEffect(() => {
+        console.log("Project from localStorage: ", project);
+
         const fetchProfile = async () => {
             try {
                 const response = await fetch(`${baseUrl}/api/auth/profile`, {
@@ -29,7 +33,7 @@ export default function Profile() {
                 const data = await response.json();
                 if (response.ok) {
                     setUser(data.user);
-                    setInterrupts(data.user.interrupts || []);
+                    fetchInterrupts(data.user.developer_id, project.project_id);
                 } else {
                     console.error('Failed to fetch profile data', data);
                 }
@@ -37,9 +41,33 @@ export default function Profile() {
                 console.error('Error fetching profile data', error);
             }
         };
-        fetchProfile();
-    }, []);
 
+        
+
+        fetchProfile();
+    }, [project]);
+    const fetchInterrupts = async (developerId, projectId) => {
+        try {
+            const response = await fetch(`${baseUrl}/api/auth/profile/interrupts/fetch`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    projId: projectId,
+                    developerId: developerId
+                })
+            }).then(response => response.json())
+            .then(data => {
+                console.log("Data: ", data.interrupts);
+                setInterrupts(data.interrupts);
+            }
+            );
+        } catch (error) {
+            console.error('Error fetching interrupts', error);
+        }
+    };
     const handleSaveProfile = async () => {
         try {
             const response = await fetch(`${baseUrl}/api/auth/profile`, {
@@ -61,27 +89,33 @@ export default function Profile() {
     };
 
     const handleOnBlur = async () => {
-        if (inputEvent.interrupt && interrupt.name && interrupt.hours >= 0 && interrupt.minutes >= 0) {
-            try {
-                const response = await fetch(`${baseUrl}/api/auth/profile/interrupts`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(interrupt)
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    setInterrupts([...interrupts, data.interrupt]);
-                    setInputEvent({ interrupt: false, otherInterrupts: false });
-                    setInterrupt({ name: "", hours: 0, minutes: 0 });
-                } else {
-                    console.error('Failed to add interrupt', data);
-                }
-            } catch (error) {
-                console.error('Error adding interrupt', error);
+       
+        console.log("Project from localStorage: ", project.project_id);
+        try {
+            const response = await fetch(`${baseUrl}/api/auth/profile/interrupts`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    name: interrupt.name === 'Others' ? additionalInterrupt : interrupt.name,
+                    hours: interrupt.hours,
+                    minutes: interrupt.minutes,
+                    projId: project.project_id
+                })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                // setInterrupts([...interrupts, data.interrupt]);
+                fetchInterrupts(user.developer_id, project.project_id);
+                setInputEvent({ interrupt: false, otherInterrupts: false });
+                setInterrupt({ name: "", hours: 0, minutes: 0 });
+            } else {
+                console.error('Failed to add interrupt', data);
             }
+        } catch (error) {
+            console.error('Error adding interrupt', error);
         }
     };
 
@@ -110,7 +144,7 @@ export default function Profile() {
     };
 
     return (
-        <div className="container" style={{ paddingLeft: "180px",marginTop:'80px' }}>
+        <div className="container" style={{ paddingLeft: "180px", marginTop: '80px' }}>
             {flashMessage && (
                 <div className="alert alert-success alert-dismissible fade show" role="alert">
                     {flashMessage}
@@ -170,7 +204,7 @@ export default function Profile() {
                                 <div className="mb-4">
                                     <label htmlFor="role" className="form-label">Role</label>
                                     <input
-                                    disabled
+                                        disabled
                                         type="text"
                                         className="form-control"
                                         id="role"
@@ -228,7 +262,6 @@ export default function Profile() {
                                                     setInputEvent({ ...inputEvent, otherInterrupts: false });
                                                 }
                                             }}
-                                            onBlur={handleOnBlur}
                                         >
                                             <option value="" disabled>Select Interrupt Type</option>
                                             {interruptType.map((item, index) => (
@@ -254,7 +287,7 @@ export default function Profile() {
                                             className="form-control"
                                             id="interruptHours"
                                             placeholder="Hours"
-                                            // value={interrupt.hours}
+                                            value={interrupt.hours}
                                             onChange={(e) => setInterrupt({ ...interrupt, hours: parseInt(e.target.value) || 0 })}
                                         />
                                     </div>
@@ -264,9 +297,12 @@ export default function Profile() {
                                             className="form-control"
                                             id="interruptMinutes"
                                             placeholder="Minutes"
-                                            // value={interrupt.minutes}
+                                            value={interrupt.minutes}
                                             onChange={(e) => setInterrupt({ ...interrupt, minutes: parseInt(e.target.value) || 0 })}
                                         />
+                                    </div>
+                                    <div className="mb-3 mx-2">
+                                        <button className="btn btn-primary" onClick={handleOnBlur}>+</button>
                                     </div>
                                 </div>
                             ) : (

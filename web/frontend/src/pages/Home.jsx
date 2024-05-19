@@ -17,6 +17,7 @@ export default function Home() {
   const [isAccepted, setIsAccepted] = useState(false);
 
   const fetchProjects = useCallback(async () => {
+    if (!user) return;
     try {
       const response = await fetch(`${baseUrl}/api/project/list`, {
         method: 'POST',
@@ -41,6 +42,7 @@ export default function Home() {
   }, [token, user]);
 
   const fetchNotifications = useCallback(async () => {
+    if (!user) return;
     try {
       const response = await fetch(`${baseUrl}/api/notifications/list`, {
         method: 'POST',
@@ -58,6 +60,7 @@ export default function Home() {
       }
 
       const data = await response.json();
+      console.log(data.notifications);
       setNotifications(data.notifications);
     } catch (error) {
       console.error(error);
@@ -70,43 +73,51 @@ export default function Home() {
     const storedUserType = localStorage.getItem('userType');
 
     if (storedUser && authToken && storedUserType) {
-      setUser(JSON.parse(storedUser));
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
       setToken(authToken);
       setUserType(JSON.parse(storedUserType));
-      fetchProjects();
-      fetchNotifications();
     } else {
       navigate("/login");
     }
-  }, [fetchProjects, fetchNotifications, navigate]);
+  }, [navigate]);
+
+  useEffect(() => {
+    if (user && token) {
+      fetchProjects();
+      fetchNotifications();
+    }
+  }, [user, token, fetchProjects, fetchNotifications]);
 
   const handleInvitationAccept = async (invitation) => {
     try {
-      const response = await fetch(`${baseUrl}/api/team/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`,
-        },
-        body: JSON.stringify({
-          project_id: invitation.project_id,
-          product_owner_id: invitation.product_owner_id,
-          developer_id: invitation.developer_id,
-          invitation_id: invitation.invitation_id,
-        }),
-      });
+        const response = await fetch(`${baseUrl}/api/team/add`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `${token}`,
+            },
+            body: JSON.stringify({
+                "project_id": invitation.project_id,
+                "product_owner_id": invitation.product_owner_id,
+                "developer_id": invitation.developer_id,
+                "invitation_id": invitation.invitation_id,
+            }),
+        });
 
-      if (!response.ok) {
-        throw new Error('Failed to accept invitation');
-      }
+        if (!response.ok) {
+            const errorData = await response.json(); // Get error details
+            throw new Error(`Failed to accept invitation: ${errorData.error}`);
+        }
 
-      setIsAccepted(true);
-      await fetchNotifications();
-      await fetchProjects();
+        setIsAccepted(true);
+        await fetchNotifications();
+        await fetchProjects();
     } catch (error) {
-      console.error(error);
+        console.error(error);
     }
-  };
+};
+
 
   const handleCreateProject = async () => {
     try {
@@ -205,10 +216,9 @@ export default function Home() {
                 </button>
               </div>
             )}
-            
           </div>
           <div className="row">
-          {projects.length > 0 ? (
+            {projects.length > 0 ? (
               projects.map((project, index) => (
                 <div className="col-md-4 mb-3" key={index}>
                   <div className="card h-100" onClick={() => handleNavigateToProject(project)}>
@@ -231,10 +241,9 @@ export default function Home() {
             <div className="col">
               <h1 className="display-6">Notifications</h1>
             </div>
-           
           </div>
           <div className="row">
-          {notifications.length > 0 ? (
+            {notifications.length > 0 ? (
               notifications.map((notification, index) => (
                 <div className="col-12 mb-3" key={index}>
                   <div className="card">
@@ -242,7 +251,7 @@ export default function Home() {
                       <p className="card-text mb-0">{notification.message}</p>
                       <button
                         className="btn btn-sm btn-primary"
-                        onClick={() => handleInvitationAccept(notification.invitation)}
+                        onClick={() => handleInvitationAccept(notification.invitation[index])}
                         disabled={notification.invitation.status === "accepted"}
                       >
                         {notification.invitation.status === "accepted" ? "Accepted" : "Accept"}
