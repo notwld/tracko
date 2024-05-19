@@ -52,30 +52,36 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const [backlogs, setBacklogs] = useState([]);
     const [sprintLength, setSprintLength] = useState('');
     const [workingDays, setWorkingDays] = useState('');
-    const [availableDays, setAvailableDays] = useState('');
-    const [interruptHours, setInterruptHours] = useState('');
+    const [availableDays, setAvailableDays] = useState({});
+    const [interruptHours, setInterruptHours] = useState({});
     const [officeHours, setOfficeHours] = useState('');
+    const [weekdays, setWeekdays] = useState(0);
     const [projectId, setProjectId] = useState(JSON.parse(localStorage.getItem('project')).project_id);
 
     useEffect(() => {
         setBacklogs(initialBacklogs);
         console.log('Initial backlogs set:', initialBacklogs);
         const fetchInterrupts = async () => {
-            await fetch(baseUrl+'/api/sprint/team/stats', {
+            await fetch(baseUrl + '/api/sprint/team/stats', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `${localStorage.getItem('token')}`
                 },
-
-                body: JSON.stringify({project_id:projectId}),
+                body: JSON.stringify({ project_id: projectId }),
             })
-            .then(response => response.json())
-            .then(data => setInterruptHours(data))
-            .catch(error => console.error('Error fetching team stats:', error));
+                .then(response => response.json())
+                .then(data => setInterruptHours(data))
+                .catch(error => console.error('Error fetching team stats:', error));
         };
         fetchInterrupts();
     }, [initialBacklogs]);
+
+    useEffect(() => {
+        if (sprintLength && workingDays) {
+            setWeekdays(workingDays / sprintLength);
+        }
+    }, [sprintLength, workingDays]);
 
     const moveItem = (id, from, to) => {
         if (from === to) {
@@ -100,6 +106,17 @@ const Sprint = ({ initialBacklogs, onClose }) => {
         console.log('Working Days:', workingDays);
         console.log('Available Days:', availableDays);
         console.log('Interrupt Hours:', interruptHours);
+    };
+
+    const handleAvailableDaysChange = (e, member) => {
+        setAvailableDays(prev => ({ ...prev, [member]: e.target.value }));
+    };
+
+    const calculateAvailability = (member) => {
+        const interruptHoursPerWeek = interruptHours[member] / weekdays;
+        const availableHoursPerDay = officeHours - interruptHoursPerWeek;
+        const totalAvailableHours = availableDays[member] * availableHoursPerDay;
+        return { interruptHoursPerWeek, availableHoursPerDay, totalAvailableHours };
     };
 
     return (
@@ -137,30 +154,18 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="row mb-3">
+                                <div className="row">
                                     <div className="col">
-                                        <label htmlFor="availableDays" className="form-label">Available Days in Sprint</label>
+                                        <label htmlFor="officeHours" className="form-label">Office Hours per Day</label>
                                         <input
                                             type="number"
                                             className="form-control"
-                                            id="availableDays"
-                                            value={availableDays}
-                                            onChange={(e) => setAvailableDays(e.target.value)}
-                                            required
-                                        />
-                                    </div>
-                                    <div className="col">
-                                        <label htmlFor="availableDays" className="form-label">Office Hours</label>
-                                        <input
-                                            type="number"
-                                            className="form-control"
-                                            id="availableDays"
+                                            id="officeHours"
                                             value={officeHours}
                                             onChange={(e) => setOfficeHours(e.target.value)}
                                             required
                                         />
                                     </div>
-                                    
                                 </div>
                             </form>
                             <div className="row">
@@ -169,33 +174,35 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                         <thead>
                                             <tr>
                                                 <th scope="col">Team Member</th>
-                                                <th scope="col">Availablity During Sprint (in Days)</th>
+                                                <th scope="col">Availability During Sprint (in Days)</th>
                                                 <th scope="col">Interrupt Hours</th>
                                                 <th scope="col">Interrupt Hours (per Week)</th>
-                                                <th scope="col">Availablity Hours (per Day)</th>
-                                                <th scope="col">Total Availablity Hours (in Sprint)</th>
-                                                
+                                                <th scope="col">Availability Hours (per Day)</th>
+                                                <th scope="col">Total Availability Hours (in Sprint)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {
-                                                Object.values(interruptHours).map((key) => (
-                                                    <tr key={key}>
+                                            {Object.keys(interruptHours).map(member => {
+                                                const { interruptHoursPerWeek, availableHoursPerDay, totalAvailableHours } = calculateAvailability(member);
+                                                return (
+                                                    <tr key={member}>
+                                                        <td>{member}</td>
                                                         <td>
-                                                            {Object.keys(interruptHours).find(k => interruptHours[k] === key)}
+                                                            <input
+                                                                type="number"
+                                                                className="form-control"
+                                                                value={availableDays[member] || ''}
+                                                                onChange={(e) => handleAvailableDaysChange(e, member)}
+                                                                required
+                                                            />
                                                         </td>
-                                                        <td>
-                                                            0
-                                                        </td>
-                                                       <td>
-                                                         {key}
-                                                       </td>
-                                                       <td>
-                                                         {key/workingDays}
-                                                       </td>
+                                                        <td>{interruptHours[member]}</td>
+                                                        <td>{interruptHoursPerWeek.toFixed(2)}</td>
+                                                        <td>{availableHoursPerDay.toFixed(2)}</td>
+                                                        <td>{totalAvailableHours.toFixed(2)}</td>
                                                     </tr>
-                                                ))
-                                            }
+                                                );
+                                            })}
                                         </tbody>
                                     </table>
                                 </div>
