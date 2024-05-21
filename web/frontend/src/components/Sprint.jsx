@@ -18,17 +18,18 @@ const DraggableItem = ({ item, type, moveItem }) => {
         end: (item, monitor) => {
             const dropResult = monitor.getDropResult();
             if (item && dropResult) {
-                console.log(`Dropping ${item.product_backlog_id} from ${item.type} to ${dropResult.to}`);
-                moveItem(item.product_backlog_id, item.type, dropResult.to);
+                console.log('Dropped item:', item, 'to:', dropResult.to);
+                moveItem(item.product_backlog_id, item.type, dropResult.to, item.story_points);
             }
         },
-    }));
+    }), [item]);
 
     return (
         <div ref={drag} className="card m-2 shadow-sm" style={{ opacity: isDragging ? 0.5 : 1, cursor: 'grab' }}>
             <div className="card-body">
                 <h5 className="card-title">{item.title}</h5>
                 <p className="card-text">{item.description}</p>
+                <p className="card-text"><strong>Story Points: {item.story_points}</strong></p>
             </div>
         </div>
     );
@@ -50,6 +51,7 @@ const DropZone = ({ children, type }) => {
 const Sprint = ({ initialBacklogs, onClose }) => {
     const [sprintItems, setSprintItems] = useState([]);
     const [backlogs, setBacklogs] = useState([]);
+    const [userStories, setUserStories] = useState([]);
     const [sprintLength, setSprintLength] = useState('');
     const [workingDays, setWorkingDays] = useState('');
     const [availableDays, setAvailableDays] = useState({});
@@ -57,10 +59,15 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const [officeHours, setOfficeHours] = useState('');
     const [weekdays, setWeekdays] = useState(0);
     const [projectId, setProjectId] = useState(JSON.parse(localStorage.getItem('project')).project_id);
+    const [hrsPerStoryPoint, setHrsPerStoryPoint] = useState(1); // Default to 1 to avoid multiplication by 0
+    const [totalStoryPoints, setTotalStoryPoints] = useState(0);
+    const [totalAvailabilityHours, setTotalAvailabilityHours] = useState(0);
+    const [showLimitPopup, setShowLimitPopup] = useState(false);
+    const [currentSprintPoints, setCurrentSprintPoints] = useState(0);
 
     useEffect(() => {
         setBacklogs(initialBacklogs);
-        console.log('Initial backlogs set:', initialBacklogs);
+        setUserStories(initialBacklogs); // Initialize user stories table with initial backlogs
         const fetchInterrupts = async () => {
             await fetch(baseUrl + '/api/sprint/team/stats', {
                 method: 'POST',
@@ -75,7 +82,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                 .catch(error => console.error('Error fetching team stats:', error));
         };
         fetchInterrupts();
-    }, [initialBacklogs]);
+    }, [initialBacklogs, projectId]);
 
     useEffect(() => {
         if (sprintLength && workingDays) {
@@ -83,21 +90,52 @@ const Sprint = ({ initialBacklogs, onClose }) => {
         }
     }, [sprintLength, workingDays]);
 
-    const moveItem = (id, from, to) => {
+    useEffect(() => {
+        const totalPoints = userStories.reduce((acc, item) => acc + parseFloat(item.story_points || 0), 0);
+        setTotalStoryPoints(totalPoints);
+    }, [userStories]);
+
+    useEffect(() => {
+        const totalAvailHours = Object.keys(availableDays).reduce((acc, member) => {
+            const { totalAvailableHours } = calculateAvailability(member);
+            return acc + totalAvailableHours;
+        }, 0);
+        setTotalAvailabilityHours(totalAvailHours);
+    }, [availableDays, officeHours, interruptHours, weekdays]);
+
+    const moveItem = (id, from, to, storyPoints) => {
+        const storyPointsPerSprint = totalAvailabilityHours / hrsPerStoryPoint;
+        console.log('Moving item:', id, from, to);
+        console.log('Story Points per Sprint:', storyPointsPerSprint);
+        console.log('Current Sprint Points:', currentSprintPoints);
+
         if (from === to) {
             console.log('No movement needed since source and destination are the same.');
             return;
         }
 
+        let updatedBacklogs = [...backlogs];
+        let updatedSprintItems = [...sprintItems];
+
         if (to === 'sprint') {
+            if (currentSprintPoints + parseFloat(storyPoints) > storyPointsPerSprint) {
+                console.log(`Story points limit exceeded: ${currentSprintPoints}`);
+                setShowLimitPopup(true);
+                return;
+            }
             const item = backlogs.find(item => item.product_backlog_id === id);
-            setSprintItems((prev) => [...prev, item]);
-            setBacklogs((prev) => prev.filter(item => item.product_backlog_id !== id));
+            updatedSprintItems = [...sprintItems, item];
+            updatedBacklogs = backlogs.filter(item => item.product_backlog_id !== id);
+            setCurrentSprintPoints(currentSprintPoints + parseFloat(storyPoints));
         } else if (to === 'backlog') {
             const item = sprintItems.find(item => item.product_backlog_id === id);
-            setBacklogs((prev) => [...prev, item]);
-            setSprintItems((prev) => prev.filter(item => item.product_backlog_id !== id));
+            updatedBacklogs = [...backlogs, item];
+            updatedSprintItems = sprintItems.filter(item => item.product_backlog_id !== id);
+            setCurrentSprintPoints(currentSprintPoints - parseFloat(storyPoints));
         }
+
+        setBacklogs(updatedBacklogs);
+        setSprintItems(updatedSprintItems);
     };
 
     const handleFormSubmit = (event) => {
@@ -112,12 +150,28 @@ const Sprint = ({ initialBacklogs, onClose }) => {
         setAvailableDays(prev => ({ ...prev, [member]: e.target.value }));
     };
 
+    const handleStoryPointsChange = (e, itemId) => {
+        const newUserStories = userStories.map(item => 
+            item.product_backlog_id === itemId ? { ...item, story_points: e.target.value } : item
+        );
+        const newBacklogs = backlogs.map(item => 
+            item.product_backlog_id === itemId ? { ...item, story_points: e.target.value } : item
+        );
+        setUserStories(newUserStories);
+        setBacklogs(newBacklogs);
+        console.log('Updated User Stories:', newUserStories);
+        console.log('Updated Backlogs:', newBacklogs);
+    };
+
     const calculateAvailability = (member) => {
         const interruptHoursPerWeek = interruptHours[member] / weekdays;
         const availableHoursPerDay = officeHours - interruptHoursPerWeek;
         const totalAvailableHours = availableDays[member] * availableHoursPerDay;
         return { interruptHoursPerWeek, availableHoursPerDay, totalAvailableHours };
     };
+
+    const storyPointsPerSprint = (totalAvailabilityHours / hrsPerStoryPoint).toFixed(2);
+    const numberOfSprints = (totalStoryPoints / storyPointsPerSprint).toFixed(2);
 
     return (
         <DndProvider backend={HTML5Backend}>
@@ -129,6 +183,12 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={onClose}></button>
                         </div>
                         <div className="modal-body">
+                            {showLimitPopup && (
+                                <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                                    <strong>Limit Reached!</strong> The sprint cannot accommodate more story points.
+                                    <button type="button" className="btn-close" onClick={() => setShowLimitPopup(false)}></button>
+                                </div>
+                            )}
                             <form onSubmit={handleFormSubmit} className="mb-4">
                                 <div className="row mb-3">
                                     <div className="col">
@@ -154,7 +214,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="row">
+                                <div className="row mb-3">
                                     <div className="col">
                                         <label htmlFor="officeHours" className="form-label">Office Hours per Day</label>
                                         <input
@@ -168,8 +228,8 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                     </div>
                                 </div>
                             </form>
-                            <div className="row">
-                                <div className="table table-bordered">
+                            <div className="row mb-4">
+                                <div className="col-12">
                                     <table className="table table-bordered">
                                         <thead>
                                             <tr>
@@ -205,6 +265,57 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                             })}
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                            <div className="row mb-4">
+                                <div className="col-12">
+                                    <label htmlFor="hrsPerStoryPoint" className="form-label">Hours per Story Point</label>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        id="hrsPerStoryPoint"
+                                        value={hrsPerStoryPoint}
+                                        onChange={(e) => setHrsPerStoryPoint(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="row mb-4">
+                                <div className="col-12">
+                                    <table className="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">User Story</th>
+                                                <th scope="col">Story Points</th>
+                                                <th scope="col">Story Points (hours)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {userStories.map((item) => (
+                                                <tr key={item.product_backlog_id}>
+                                                    <td>{item.title}</td>
+                                                    <td>
+                                                        <input
+                                                            type="number"
+                                                            className="form-control"
+                                                            value={item.story_points || ''}
+                                                            onChange={(e) => handleStoryPointsChange(e, item.product_backlog_id)}
+                                                            required
+                                                        />
+                                                    </td>
+                                                    <td>{(item.story_points * hrsPerStoryPoint).toFixed(2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div className="row mb-4">
+                                <div className="col-12">
+                                    <h5>Total Story Points: {totalStoryPoints.toFixed(2)}</h5>
+                                    <h5>Total Availability Hours (in Sprint): {totalAvailabilityHours.toFixed(2)}</h5>
+                                    <h5>Story Points per Sprint: {storyPointsPerSprint}</h5>
+                                    <h5>Number of Sprints Required: {numberOfSprints}</h5>
                                 </div>
                             </div>
                             <div className="row">
