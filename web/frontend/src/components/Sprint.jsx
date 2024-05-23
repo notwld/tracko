@@ -183,12 +183,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={onClose}></button>
                         </div>
                         <div className="modal-body">
-                            {showLimitPopup && (
-                                <div className="alert alert-warning alert-dismissible fade show" role="alert">
-                                    <strong>Limit Reached!</strong> The sprint cannot accommodate more story points.
-                                    <button type="button" className="btn-close" onClick={() => setShowLimitPopup(false)}></button>
-                                </div>
-                            )}
+                            
                             <form onSubmit={handleFormSubmit} className="mb-4">
                                 <div className="row mb-3">
                                     <div className="col">
@@ -317,6 +312,14 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                     <h5>Story Points per Sprint: {storyPointsPerSprint}</h5>
                                     <h5>Number of Sprints Required: {numberOfSprints}</h5>
                                 </div>
+                            </div>
+                            <div className="row">
+                            {showLimitPopup && (
+                                <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                                    <strong>Limit Reached!</strong> The sprint cannot accommodate more story points.
+                                    <button type="button" className="btn-close" onClick={() => setShowLimitPopup(false)}></button>
+                                </div>
+                            )}
                             </div>
                             <div className="row">
                                 <div className="col-6">
