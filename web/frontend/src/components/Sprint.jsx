@@ -3,6 +3,7 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import baseUrl from '../config/baseUrl';
+import Calculations from './Calculations'
 
 const ItemType = {
     ITEM: 'item'
@@ -18,7 +19,6 @@ const DraggableItem = ({ item, type, moveItem }) => {
         end: (item, monitor) => {
             const dropResult = monitor.getDropResult();
             if (item && dropResult) {
-                console.log('Dropped item:', item, 'to:', dropResult.to);
                 moveItem(item.product_backlog_id, item.type, dropResult.to, item.story_points);
             }
         },
@@ -65,6 +65,9 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const [showLimitPopup, setShowLimitPopup] = useState(false);
     const [currentSprintPoints, setCurrentSprintPoints] = useState(0);
 
+    const [salaries, setSalaries] = useState(JSON.parse(localStorage.getItem('salaries')) || {});
+    const [perDaySalaries, setPerDaySalaries] = useState(JSON.parse(localStorage.getItem('perDaySalaries')) || {});
+
     useEffect(() => {
         setBacklogs(initialBacklogs);
         setUserStories(initialBacklogs); // Initialize user stories table with initial backlogs
@@ -105,12 +108,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
 
     const moveItem = (id, from, to, storyPoints) => {
         const storyPointsPerSprint = totalAvailabilityHours / hrsPerStoryPoint;
-        console.log('Moving item:', id, from, to);
-        console.log('Story Points per Sprint:', storyPointsPerSprint);
-        console.log('Current Sprint Points:', currentSprintPoints);
-
         if (from === to) {
-            console.log('No movement needed since source and destination are the same.');
             return;
         }
 
@@ -119,7 +117,6 @@ const Sprint = ({ initialBacklogs, onClose }) => {
 
         if (to === 'sprint') {
             if (currentSprintPoints + parseFloat(storyPoints) > storyPointsPerSprint) {
-                console.log(`Story points limit exceeded: ${currentSprintPoints}`);
                 setShowLimitPopup(true);
                 return;
             }
@@ -151,16 +148,19 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     };
 
     const handleStoryPointsChange = (e, itemId) => {
-        const newUserStories = userStories.map(item => 
+        const newUserStories = userStories.map(item =>
             item.product_backlog_id === itemId ? { ...item, story_points: e.target.value } : item
         );
-        const newBacklogs = backlogs.map(item => 
+        const newBacklogs = backlogs.map(item =>
             item.product_backlog_id === itemId ? { ...item, story_points: e.target.value } : item
         );
         setUserStories(newUserStories);
         setBacklogs(newBacklogs);
-        console.log('Updated User Stories:', newUserStories);
-        console.log('Updated Backlogs:', newBacklogs);
+    };
+
+    const handleInterruptHoursChange = (e, member) => {
+        setInterruptHours({ ...interruptHours, [member]: e.target.value });
+        localStorage.setItem('interruptHours', JSON.stringify({ ...interruptHours, [member]: e.target.value }));
     };
 
     const calculateAvailability = (member) => {
@@ -183,7 +183,6 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                             <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={onClose}></button>
                         </div>
                         <div className="modal-body">
-                            
                             <form onSubmit={handleFormSubmit} className="mb-4">
                                 <div className="row mb-3">
                                     <div className="col">
@@ -234,6 +233,8 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                                 <th scope="col">Interrupt Hours (per Week)</th>
                                                 <th scope="col">Availability Hours (per Day)</th>
                                                 <th scope="col">Total Availability Hours (in Sprint)</th>
+                                                <th scope="col">Salary</th>
+                                                <th scope="col">Per Day Salary</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -251,10 +252,20 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                                                 required
                                                             />
                                                         </td>
-                                                        <td>{interruptHours[member]}</td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                className="form-control"
+                                                                value={interruptHours[member] || ''}
+                                                                onChange={(e) => handleInterruptHoursChange(e, member)}
+                                                                required
+                                                            />
+                                                        </td>
                                                         <td>{interruptHoursPerWeek.toFixed(2)}</td>
                                                         <td>{availableHoursPerDay.toFixed(2)}</td>
                                                         <td>{totalAvailableHours.toFixed(2)}</td>
+                                                        <td>{salaries[member]}</td>
+                                                        <td>{perDaySalaries[member]}</td>
                                                     </tr>
                                                 );
                                             })}
@@ -314,12 +325,30 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                 </div>
                             </div>
                             <div className="row">
-                            {showLimitPopup && (
-                                <div className="alert alert-warning alert-dismissible fade show" role="alert">
-                                    <strong>Limit Reached!</strong> The sprint cannot accommodate more story points.
-                                    <button type="button" className="btn-close" onClick={() => setShowLimitPopup(false)}></button>
-                                </div>
-                            )}
+                                {showLimitPopup && (
+                                    <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                                        <strong>Limit Reached!</strong> The sprint cannot accommodate more story points.
+                                        <button type="button" className="btn-close" onClick={() => setShowLimitPopup(false)}></button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="row mt-4">
+                                <Calculations
+                                    officeHoursPerDay={officeHours}
+                                    sprintLength={sprintLength}
+                                    workingDays={workingDays}
+                                    hrsPerStoryPoint={hrsPerStoryPoint}
+                                    teamMembers={Object.keys(availableDays).map(member => ({
+                                        name: member,
+                                        availabilityDays: availableDays[member],
+                                        interruptHours: interruptHours[member],
+                                        salary: salaries[member],
+                                        perDaySalary: perDaySalaries[member]
+                                    }))}
+                                    totalAvailabilityHours={totalAvailabilityHours}
+                                    totalStoryPoints={totalStoryPoints}
+                                    storyPointsPerSprint={storyPointsPerSprint}
+                                />
                             </div>
                             <div className="row">
                                 <div className="col-6">
@@ -339,6 +368,8 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                     </DropZone>
                                 </div>
                             </div>
+                            
+
                         </div>
                         <div className="modal-footer">
                             <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={onClose}>Close</button>

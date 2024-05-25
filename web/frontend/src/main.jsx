@@ -19,6 +19,8 @@ import Effort from './components/Effort.jsx'
 import Conversion from './components/Conversion.jsx'
 import BasicCocomo from './pages/Traditional/BasicCocomo.jsx'
 import FpTraditional from './pages/Traditional/FpTraditional.jsx'
+import HR from './pages/HR.jsx'
+import Calculations from './components/Calculations.jsx'
 
 
 const routes = createBrowserRouter([
@@ -85,6 +87,16 @@ const routes = createBrowserRouter([
       {
         path: "/FpTraditional",
         element: <FpTraditional/>
+      }
+      ,
+      {
+        path: "/admin",
+        element: <HR/>
+      }
+      ,
+      {
+        path: "/calculation",
+        element: <Calculations/>
       }
 
     ]
