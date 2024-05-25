@@ -16,6 +16,8 @@ import UsecaseReveal from './screens/UsecaseReveal';
 import ChatClone from './screens/ChatClone';
 import CardRevealFP from './screens/CardRevealFP';
 import FPQuestions from './screens/FPQuestions';
+import UsecaseAgile from './screens/UsecaseAgile';
+import UsecaseAgileReveal from './screens/UsecaseAgileReveal';
 
 const Stack = createStackNavigator();
 const AuthenticatedUserContext = createContext({});
@@ -39,7 +41,9 @@ function ChatStack() {
       <Stack.Screen name="CardReveal" component={CardReveal} />
       <Stack.Screen name="FinishScreen" component={FinishScreen} />
       <Stack.Screen name="Usecase" component={Usecase} />
+      <Stack.Screen name="UsecaseAgile" component={UsecaseAgile} />
       <Stack.Screen name="UsecaseReveal" component={UsecaseReveal} />
+      <Stack.Screen name="UsecaseAgileReveal" component={UsecaseAgileReveal} />
       <Stack.Screen name="CardRevealFP" component={CardRevealFP} />
       <Stack.Screen name="FPQuestions" component={FPQuestions} />
     </Stack.Navigator>

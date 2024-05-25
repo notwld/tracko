@@ -12,7 +12,7 @@ import { addDoc, collection, doc, updateDoc, onSnapshot,getDocs } from "firebase
 
 const Home = () => {
     const [text, setText] = useState('');
-    const [inviteCode, setInviteCode] = useState("2ukp7")
+    const [inviteCode, setInviteCode] = useState("mgv9a")
     const [project, setProject] = useState([])
     const [backlog, setBacklog] = useState([])
     const navigation = useNavigation();
@@ -36,10 +36,57 @@ const Home = () => {
             if(method===""){
                 Alert.alert("No Method Selected in the Admin Panel")
             }
+            else if(method==="Usecase Points Agile"){
+                console.log("Usecase Points Agile")
+                 try {
+                const res = await fetch("http://192.168.1.106:19002/usecase", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        'email': auth.currentUser.email,
+                        'code': inviteCode
+                    })
+                });
+                if (res.status === 400) {
+                    const data = await res.json();
+                    console.log(data.err);
+                    return Alert.alert("Something went wrong!");
+                }
+                const data = await res.json();
+                try{
+                    if (data) {
+                        
+                        console.log(data.data.project);
+                        console.log(data.data.usecases);
+                        
+                        console.log("________________count of usecases_____________")
+                        console.log(data.data.usecases.length)
+                        
+                        navigation.navigate("UsecaseAgile", {
+                           usecase: data.data.usecases[0],
+                            usecasesData: data.data.usecases,
+                            project: data.data.project, 
+                            user: data.data.user
+                        });                    
+                    } else {
+                        Alert.alert("Invalid Code");
+                    }
+                }
+                catch (err) {
+                    console.log(err);
+                    Alert.alert(err)
+                }
+            } catch (err) {
+                console.log(err);
+                Alert.alert(err)
+            }
+            }
             else if(method==="Usecase Points"){
                 console.log("Usecase Points")
                  try {
-                const res = await fetch("http://192.168.45.59:19002/usecase", {
+                const res = await fetch("http://192.168.1.106:19002/usecase", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -85,7 +132,7 @@ const Home = () => {
             }
             else if(method==="FP Metrices"){
                 try {
-                    const res = await fetch("http://192.168.45.59:19002/code", {
+                    const res = await fetch("http://192.168.1.106:19002/code", {
                         method: "POST",
                         headers: {
                             'Content-Type': 'application/json'
@@ -134,7 +181,7 @@ const Home = () => {
             else if(method==="User Story"){
                 console.log("User Story")
                  try {
-                const res = await fetch("http://192.168.45.59:19002/code", {
+                const res = await fetch("http://192.168.1.106:19002/code", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'

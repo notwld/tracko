@@ -30,7 +30,7 @@ import { BackHandler } from 'react-native';
 
 export default function ChatClone(props) {
   const navigate = useNavigation();
-  const { project, usecase, usecases, user, currentDocumentId } = props.route.params;
+  const { project, usecase, usecases, user, currentDocumentId,mode } = props.route.params;
   console.log("_______________________chat_______________________-")
   console.log(props);
   // useEffect(()=>{
@@ -231,10 +231,10 @@ export default function ChatClone(props) {
       console.error("Current usecase not found in usecases array.");
       return;
     }
-    deleteDoc(doc(database, 'usecase', currentDocumentId))
+    deleteDoc(doc(database, mode=="Agile"?'usecase':"usecaseAgile", currentDocumentId))
       .then(() => {
         console.log("Document successfully deleted!");
-        navigate.navigate("Usecase", { usecase: usecase, usecasesData: usecases, project: project, user: user, revote: true });
+        navigate.navigate(mode=="Agile"?'Usecase':"UsecaseAgile", { usecase: usecase, usecasesData: usecases, project: project, user: user, revote: true });
 
       })
       .catch((error) => {
@@ -258,7 +258,7 @@ export default function ChatClone(props) {
 
 
         // Delete the current document from Firestore
-        deleteDoc(doc(database, 'current', currentDocumentId))
+        deleteDoc(doc(database, mode=="Agile"?'current':"currentUsecaseAgile", currentDocumentId))
             .then(() => {
                 console.log("Document successfully deleted!");
 
@@ -272,7 +272,7 @@ export default function ChatClone(props) {
                 } else if (nextIndex < usecases.length) {
                     // Navigate to the next use case in the list
                     const nextUseCase = usecases[nextIndex];
-                    navigation.navigate('Usecase', {
+                    navigation.navigate(mode=="Agile"?'Usecase':"UsecaseAgile", {
                         usecase: nextUseCase,
                         usecasesData: usecases,
                         project,
