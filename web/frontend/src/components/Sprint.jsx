@@ -196,7 +196,9 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     };
 
     const totalUsecasePoints = agileUsecases.reduce((acc, usecase) => acc + calculateUsecasePoints(usecase), 0);
-    const usecasePointsPerSprint = (totalUsecasePoints).toFixed(2);
+    const usecasePointsPerSprint = (totalAvailabilityHours/hrsPerStoryPoint).toFixed(2);
+    const numberOfSprintsInUsecase = (totalUsecasePoints / storyPointsPerSprint).toFixed(2);
+
 
     return (
         <DndProvider backend={HTML5Backend}>
@@ -391,7 +393,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                         </>
                                     )}
                                     <h5>Total Availability Hours (in Sprint): {totalAvailabilityHours.toFixed(2)}</h5>
-                                    <h5>Number of Sprints Required: {numberOfSprints}</h5>
+                                    <h5>Number of Sprints Required: {!toggleUseCases?numberOfSprints:numberOfSprintsInUsecase}</h5>
                                 </div>
                             </div>
                             <div className="row">
