@@ -253,11 +253,23 @@ export default function ProductBaclogs() {
                 description: item.description,
                 storyPoints: maxStoryPoint
             }))
+            // update setBacklog
+            setBacklog((prevBacklog) => prevBacklog.map((backlog) => {
+                if (backlog.product_backlog_id === item.product_backlog_id) {
+                    return {
+                        ...backlog,
+                        storyPoints: maxStoryPoint
+                    }
+                }
+                return backlog;
+            }));
+            
         });
         setShow(true)
 
 
     }
+ 
     const [usecaseShow, setUsecaseShow] = useState(false)
     const handleUseCaseMenuShow = (item) => {
         console.log(item)

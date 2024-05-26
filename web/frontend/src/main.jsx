@@ -13,14 +13,19 @@ import Profile from './pages/Profile.jsx'
 import Login from './pages/Login.jsx'
 import Register from './pages/Register.jsx'
 import Project from './pages/Project.jsx'
+
 import Cocomo from './components/Cocomo.jsx'
 import Eaf from './components/EAF.jsx'
 import Effort from './components/Effort.jsx'
 import Conversion from './components/Conversion.jsx'
 import BasicCocomo from './pages/Traditional/BasicCocomo.jsx'
-import FpTraditional from './pages/Traditional/FpTraditional.jsx'
+import IntermediateCocomo from './pages/Traditional/IntermediateCocomo.jsx'
+import UseCase from './pages/Traditional/UseCase.jsx'
+import SimpleFP from './pages/Traditional/SimpleFP.jsx'
 import HR from './pages/HR.jsx'
-import Calculations from './components/Calculations.jsx'
+import UseCaseDoc from './pages/UseCaseDoc.jsx'
+import Calculations from './pages/Traditional/Calculations.jsx'
+import Traditional from './pages/Traditional.jsx'
 
 
 const routes = createBrowserRouter([
@@ -65,38 +70,52 @@ const routes = createBrowserRouter([
         element: <Profile />
       },
       {
-        path: "/Cocomo",
+        path: "/project/:id/cocomo",
         element: <Cocomo/>
       },
       {
-        path: "/Eaf",
+        path: "project/:id/eaf",
         element: <Eaf />
       },
       {
-        path: "/Effort",
+        path: "/project/:id/effort",
         element: <Effort />
       },
       {
-        path: "/Conversion",
+        path: "/project/:id/conversion",
         element: <Conversion/>
       },
       {
-        path: "/BasicCocomo",
+        path: "/project/:id/BasicCocomo",
         element: <BasicCocomo/>
       },
       {
-        path: "/FpTraditional",
-        element: <FpTraditional/>
-      }
-      ,
+        path: "/project/:id/IntermediateCocomo",
+        element: <IntermediateCocomo/>
+      },
       {
-        path: "/admin",
-        element: <HR/>
-      }
-      ,
+        path: "/project/:id/UseCase",
+        element: <UseCase/>
+      },
       {
-        path: "/calculation",
+        path: "/project/:id/SimpleFP",
+        element: <SimpleFP/>
+      },
+      {
+        path: "/UseCaseDoc",
+        element: <UseCaseDoc/>
+      },
+      {
+        path: "/Calculations",
         element: <Calculations/>
+      },
+      {
+        path:"/hr",
+        element: <HR/>
+      },
+      {
+        path:"/project/:id/traditional",
+        element: <Traditional/>
       }
 
     ]

@@ -3,7 +3,9 @@ import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import baseUrl from '../config/baseUrl';
-import Calculations from './Calculations'
+import Calculations from './Calculations';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { database } from '../config/firebase';
 
 const ItemType = {
     ITEM: 'item'
@@ -49,9 +51,11 @@ const DropZone = ({ children, type }) => {
 };
 
 const Sprint = ({ initialBacklogs, onClose }) => {
+    console.log('Initial Backlogs:', initialBacklogs);
     const [sprintItems, setSprintItems] = useState([]);
     const [backlogs, setBacklogs] = useState([]);
     const [userStories, setUserStories] = useState([]);
+    const [agileUsecases, setAgileUsecases] = useState([]);
     const [sprintLength, setSprintLength] = useState('');
     const [workingDays, setWorkingDays] = useState('');
     const [availableDays, setAvailableDays] = useState({});
@@ -64,6 +68,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const [totalAvailabilityHours, setTotalAvailabilityHours] = useState(0);
     const [showLimitPopup, setShowLimitPopup] = useState(false);
     const [currentSprintPoints, setCurrentSprintPoints] = useState(0);
+    const [toggleUseCases, setToggleUseCases] = useState(false);
 
     const [salaries, setSalaries] = useState(JSON.parse(localStorage.getItem('salaries')) || {});
     const [perDaySalaries, setPerDaySalaries] = useState(JSON.parse(localStorage.getItem('perDaySalaries')) || {});
@@ -105,6 +110,18 @@ const Sprint = ({ initialBacklogs, onClose }) => {
         }, 0);
         setTotalAvailabilityHours(totalAvailHours);
     }, [availableDays, officeHours, interruptHours, weekdays]);
+
+    useEffect(() => {
+        const collectionRef = collection(database, "usecasesAgile");
+        onSnapshot(collectionRef, (querySnapshot) => {
+            const data = [];
+            querySnapshot.forEach((doc) => {
+                data.push(doc.data());
+            });
+            console.log(data);
+            setAgileUsecases(data);
+        });
+    }, []);
 
     const moveItem = (id, from, to, storyPoints) => {
         const storyPointsPerSprint = totalAvailabilityHours / hrsPerStoryPoint;
@@ -172,6 +189,14 @@ const Sprint = ({ initialBacklogs, onClose }) => {
 
     const storyPointsPerSprint = (totalAvailabilityHours / hrsPerStoryPoint).toFixed(2);
     const numberOfSprints = (totalStoryPoints / storyPointsPerSprint).toFixed(2);
+
+    const calculateUsecasePoints = (usecase) => {
+        const actorPoints = Object.values(usecase.actorWeights).reduce((acc, weight) => acc + weight, 0);
+        return actorPoints + usecase.useCasePoints;
+    };
+
+    const totalUsecasePoints = agileUsecases.reduce((acc, usecase) => acc + calculateUsecasePoints(usecase), 0);
+    const usecasePointsPerSprint = (totalUsecasePoints).toFixed(2);
 
     return (
         <DndProvider backend={HTML5Backend}>
@@ -287,42 +312,113 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                 </div>
                             </div>
                             <div className="row mb-4">
-                                <div className="col-12">
-                                    <table className="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th scope="col">User Story</th>
-                                                <th scope="col">Story Points</th>
-                                                <th scope="col">Story Points (hours)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {userStories.map((item) => (
-                                                <tr key={item.product_backlog_id}>
-                                                    <td>{item.title}</td>
-                                                    <td>
-                                                        <input
-                                                            type="number"
-                                                            className="form-control"
-                                                            value={item.story_points || ''}
-                                                            onChange={(e) => handleStoryPointsChange(e, item.product_backlog_id)}
-                                                            required
-                                                        />
-                                                    </td>
-                                                    <td>{(item.story_points * hrsPerStoryPoint).toFixed(2)}</td>
+                                <button className="btn btn-primary" onClick={() => setToggleUseCases(!toggleUseCases)}>
+                                    {toggleUseCases ? 'Hide Use Cases' : 'Show Use Cases'}
+                                </button>
+                                {toggleUseCases ? (
+                                    <div className='col-12'>
+                                        <table className="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Usecase</th>
+                                                    <th scope="col">Description</th>
+                                                    <th scope="col">Usecase Points</th>
+                                                    <th scope="col">Actor Weights</th>
+                                                    <th scope="col">Total Usecase Points</th>
+                                                    <th scope="col">Usecase Points (hours)</th>
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            </thead>
+                                            <tbody>
+                                                {agileUsecases.map((usecase) => (
+                                                    <tr key={usecase.usecase_id}>
+                                                        <td>{usecase.usecase.title}</td>
+                                                        <td>{usecase.usecase.description}</td>
+                                                        <td>{usecase.useCasePoints}</td>
+                                                        <td>
+                                                            {Object.entries(usecase.actorWeights).map(([actor, weight]) => (
+                                                                <div key={actor}>{actor}: {weight}</div>
+                                                            ))}
+                                                        </td>
+                                                        <td>{calculateUsecasePoints(usecase)}</td>
+                                                        <td>{(calculateUsecasePoints(usecase) * hrsPerStoryPoint).toFixed(2)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ) : (
+                                    <div className="col-12">
+                                        <table className="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">User Story</th>
+                                                    <th scope="col">Story Points</th>
+                                                    <th scope="col">Story Points (hours)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {userStories.map((item) => (
+                                                    <tr key={item.product_backlog_id}>
+                                                        <td>{item.title}</td>
+                                                        <td>
+                                                            <input
+                                                                type="number"
+                                                                className="form-control"
+                                                                value={item.story_points || ''}
+                                                                onChange={(e) => handleStoryPointsChange(e, item.product_backlog_id)}
+                                                                required
+                                                            />
+                                                        </td>
+                                                        <td>{(item.story_points * hrsPerStoryPoint).toFixed(2)}</td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
                             </div>
                             <div className="row mb-4">
                                 <div className="col-12">
-                                    <h5>Total Story Points: {totalStoryPoints.toFixed(2)}</h5>
+                                    {toggleUseCases ? (
+                                        <>
+                                            <h5>Total Usecase Points: {totalUsecasePoints}</h5>
+                                            <h5>Usecase Points per Sprint: {usecasePointsPerSprint}</h5>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <h5>Total Story Points: {totalStoryPoints.toFixed(2)}</h5>
+                                            <h5>Story Points per Sprint: {storyPointsPerSprint}</h5>
+                                        </>
+                                    )}
                                     <h5>Total Availability Hours (in Sprint): {totalAvailabilityHours.toFixed(2)}</h5>
-                                    <h5>Story Points per Sprint: {storyPointsPerSprint}</h5>
                                     <h5>Number of Sprints Required: {numberOfSprints}</h5>
                                 </div>
+                            </div>
+                            <div className="row">
+                                {showLimitPopup && (
+                                    <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                                        <strong>Limit Reached!</strong> The sprint cannot accommodate more story points.
+                                        <button type="button" className="btn-close" onClick={() => setShowLimitPopup(false)}></button>
+                                    </div>
+                                )}
+                            </div>
+                            <div className="row mt-4">
+                                <Calculations
+                                    officeHoursPerDay={officeHours}
+                                    sprintLength={sprintLength}
+                                    workingDays={workingDays}
+                                    hrsPerStoryPoint={hrsPerStoryPoint}
+                                    teamMembers={Object.keys(availableDays).map(member => ({
+                                        name: member,
+                                        availabilityDays: availableDays[member],
+                                        interruptHours: interruptHours[member],
+                                        salary: salaries[member],
+                                        perDaySalary: perDaySalaries[member]
+                                    }))}
+                                    totalAvailabilityHours={totalAvailabilityHours}
+                                    totalStoryPoints={totalStoryPoints}
+                                    storyPointsPerSprint={storyPointsPerSprint}
+                                />
                             </div>
                             <div className="row">
                                 {showLimitPopup && (

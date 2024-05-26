@@ -268,9 +268,7 @@ export default function PokerPlanning() {
     };
 
     return (
-        <div className='container my-5' style={{
-            paddingLeft: '180px',
-        }}>
+        <div className='container my-5' style={{ paddingLeft: '180px' }}>
             <div className="row mt-4">
                 <div className="container">
                     <nav aria-label="breadcrumb">
@@ -298,12 +296,18 @@ export default function PokerPlanning() {
                 </div>
             </div>
             <div className="row">
+            <div className="row">
                 <div className="col">
-                    <select className="form-select" aria-label="Default select example">
+                    <select className="form-select" aria-label="Default select example" onChange={(e) => handleMethod(e.target.value)}>
                         <option selected>Select Sizing Technique</option>
-                        <option value="1">Fibonacci</option>
+                        <option value="FP Metrices">FP Metrices</option>
+                        <option value="User Story">User Story</option>
+                        <option value="Usecase Points">Usecase Points</option>
+                        <option value="Usecase Points Agile">Usecase Points (Agile Mode)</option>
                     </select>
                 </div>
+            </div>
+            
             </div>
             <div className="row mt-3">
                 {code && session && (
@@ -311,38 +315,7 @@ export default function PokerPlanning() {
                         <p className='lead'>Invite Code: {code.inviteCode}</p>
                     </div>
                 )}
-                <div className="col">
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" onClick={() => handleMethod('FP Metrices')} />
-                        <label className="form-check-label" htmlFor="flexRadioDefault1">
-                            FP Metrices
-                        </label>
-                    </div>
-                </div>
-                <div className="col">
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault2" onClick={() => handleMethod('User Story')} />
-                        <label className="form-check-label" htmlFor="flexRadioDefault2">
-                            User Story
-                        </label>
-                    </div>
-                </div>
-                <div className="col">
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault3" onClick={() => handleMethod('Usecase Points')} />
-                        <label className="form-check-label" htmlFor="flexRadioDefault3">
-                            Usecase Points
-                        </label>
-                    </div>
-                </div>
-                <div className="col">
-                    <div className="form-check">
-                        <input className="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault4" onClick={() => handleMethod('Usecase Points Agile')} />
-                        <label className="form-check-label" htmlFor="flexRadioDefault4">
-                            Usecase Points (Agile Mode)
-                        </label>
-                    </div>
-                </div>
+               
             </div>
 
             {session && (
@@ -429,8 +402,8 @@ export default function PokerPlanning() {
                                 </div>
                             )
                         ))}
-                        {method === "User Story" && storyPoints.length > 0 && storyPoints.map((point, i) => (
-                            point.product_backlog_id === current.product_backlog_id && (
+                        {method === "User Story" && storyPoints?.length > 0 && storyPoints?.map((point, i) => (
+                            point?.product_backlog_id === current?.product_backlog_id && (
                                 <div className="col" key={i}>
                                     <div className="card my-2">
                                         <div className="card-body text-center">
@@ -446,15 +419,15 @@ export default function PokerPlanning() {
             
             <div className="row my-4">
                 <div className="col">
-                    {usecasesAgile.length > 0 ? (
-                        usecasesAgile.map((usecase, index) => (
+                    {usecasesAgile?.length > 0 ? (
+                        usecasesAgile?.map((usecase, index) => (
                             <div className="card my-2" key={index}>
                                 <div className="card-body">
-                                    <p className="card-text">{usecase.user} assigned {usecase.useCasePoints} to usecase and {usecasesAgile.length>0 && Object.keys(usecase.actorWeights).length > 0 && (
+                                    <p className="card-text">{usecase?.user} assigned {usecase?.useCasePoints} to usecase and {usecasesAgile.length>0 && Object.keys(usecase.actorWeights).length > 0 && (
                                         <span>
                                             {Object.keys(usecase.actorWeights).map((actor, i) => (
                                                 <div key={i} className="row">
-                                                    <span> assigned {usecase.actorWeights[actor]} to {actor}</span>
+                                                    <span> assigned {usecase?.actorWeights[actor]} to {actor}</span>
                                                 </div>
                                             ))}
                                             </span>
@@ -467,7 +440,7 @@ export default function PokerPlanning() {
                             </div>
                         ))
                     ) : (
-                        <p>No use cases available</p>
+                        <p></p>
                     )}
                 </div>
             </div>

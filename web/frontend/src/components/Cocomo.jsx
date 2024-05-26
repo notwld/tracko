@@ -3,6 +3,9 @@ import './Cocomo.css';
 import Eaf from './EAF.jsx';	
 import { Link } from "react-router-dom"
 import Conversion from './Conversion.jsx';
+import '../components/Cocomo.css';
+import Popover from 'react-bootstrap/Popover';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 function Cocomo({totalLOC}) {
   
   const [total, setTotal] = useState(0.00);
@@ -37,15 +40,37 @@ function Cocomo({totalLOC}) {
   useEffect(() => {
     calculateTotal();
   }, [values])
-  
+
+  const scaleFactors=(
+    <Popover id="popover-basic" className="custom-popover">
+    <Popover.Header as="h3">Scale Factors B</Popover.Header>
+    <Popover.Body>
+  <p><strong>B</strong> reflects the increased effort required as the size of the Project varies from 1.1 to 1.24 depending on :</p>      
+  <ul>
+    <li>novelty of the project,</li>
+    <li>development flexibility,</li>
+    <li>risk management approaches and</li>
+    <li>the process maturity.</li>
+  </ul>
+</Popover.Body>
+    </Popover>
+);
+  const saveValues = () => {
+    const data ={
+      totalLOC: totalLOC,
+      effort: total,
+    }
+  }
   return (
-    <div className="container">
+    <div className="container" style={{width:"80%"}}>
       {/* <Conversion/> */}
      
       <div className="table-container">
-        <h1>Scale Factors</h1>
-        <p>LOC from conversion: {totalLOC}</p>
-      <table className="cocomo-table"> 
+      <OverlayTrigger trigger="click" placement='bottom' overlay={scaleFactors} >
+      <h3 style={{marginLeft:"200px"}}><strong>Scale Factors</strong></h3>
+</OverlayTrigger>
+        {/* <p>LOC from conversion: {totalLOC}</p> */}
+        <table className="table table-striped table-hover" style={{marginLeft:"140px"}} >
         <thead>
           <tr>
             <th>Scale Factors</th>

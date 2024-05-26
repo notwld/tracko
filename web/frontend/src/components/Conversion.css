@@ -1,0 +1,144 @@
+.cocomo-II-app{
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 100px;
+    margin-right: 100px;
+}
+h1 {
+    font-size: 4rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  
+label {
+    font-size: 1.2rem;
+    color: #555;
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 5px;
+  }
+  
+  select, input[type="number"] {
+    font-size: 1rem;
+    padding: 10px;
+    border: 2px solid hsla(0, 0%, 80%, 0.5);
+    border-radius: 5px;
+    color: hsla(0, 0%, 0%, 0.5);
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+    width: 200px;
+  }
+  
+  select {
+    cursor: pointer;
+  }
+  
+  option {
+    padding: 10px;
+    background-color: #fff;
+    color: #333;
+  }
+  
+  select:focus, input[type="number"]:focus {
+    outline: none;
+    border-color: #007BFF;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  }
+  
+  input[type="radio"] {
+    display: none;
+  }
+  
+  .radio-group {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .radio-group label {
+    display: inline-flex;
+    align-items: center;
+    font-size: 1rem;
+    color: #333;
+    margin: 0 15px;
+    cursor: pointer;
+  }
+  
+  .radio-group input[type="radio"] + label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    border: 2px solid #007BFF;
+    border-radius: 50%;
+    background-color: #fff;
+    transition: background-color 0.3s;
+  }
+  
+  .radio-group input[type="radio"]:checked + label::before {
+    background-color: #007BFF;
+    box-shadow: inset 0 0 0 4px #fff;
+  }
+  
+  .radio-group input[type="radio"]:focus + label::before {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+  }
+  
+  p {
+    font-size: 1.1rem;
+    color: #555;
+  }
+  
+  header, .conversion-section, .output-section {
+    margin-bottom: 30px;
+  }
+  
+  .conversion-section {
+    margin-top: 20px;
+  }
+
+  button{
+    font-size: 1.0rem;
+    font-weight: bold;
+    padding: 10px 20px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.5 ease;
+  }
+  .calculate-button{
+    background-color: hsl(125, 47%, 54%);
+  }
+  .calculate-button:hover{
+    background-color: hsl(125, 47%, 44%);
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+    
+}
+
+.table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+

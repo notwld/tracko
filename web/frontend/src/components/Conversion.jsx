@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import Cocomo from './Cocomo';
+import '../components/Conversion.css';
 function Conversion() {
+
   // State variables to store the selected conversion type and language
   const [conversionType, setConversionType] = useState('LOC');
   const [selectedLanguage, setSelectedLanguage] = useState('');
@@ -504,11 +506,18 @@ function Conversion() {
     setSelectedLanguage(event.target.value);
   };
 
-  // Function to handle input change
   const handleInputChange = (event) => {
-    setTotalLOC(event.target.value);
-    setInputValue(event.target.value);
-  };
+    let value = event.target.value;
+    // Convert to number only if it's not empty
+    if (value !== "") {
+        value = parseFloat(value);
+        // If conversion is not successful or the value is negative, return
+        if (isNaN(value) || value < 0) return;
+    }
+    setTotalLOC(value);
+    setInputValue(value);
+};
+
 
   // Function to calculate total LOC
 const calculateLOC = () => {
@@ -537,35 +546,37 @@ const calculateLOC = () => {
     // alert(`Total LOC calculated: ${totalLOC}`);
   };
   
-
+  const save = ()=>{
+    const data = {
+      totalLOC:totalLOC,
+    }
+  }
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-    }}>
-        <header>
+    <div className='cocomo-II-app'>
+      <div className='conversion-margin' style={{marginLeft:"200px"}}>
+      <header>
         <h1>Cocomo II</h1>
        
       </header>
+      <div className="conversion-section">
       <h2>Conversion</h2>
-      <div>
+      <div className="radio-group">
         <input type="radio" id="locRadio" name="conversionType" value="LOC" checked={conversionType === 'LOC'} onChange={handleConversionTypeChange} />
         <label htmlFor="locRadio">LOC</label>
         <input type="radio" id="fpRadio" name="conversionType" value="FP" checked={conversionType === 'FP'} onChange={handleConversionTypeChange} />
         <label htmlFor="fpRadio">FP to LOC</label>
       </div>
+      </div>
       <div>
         {conversionType === 'LOC' ? (
           <div>
             <label htmlFor="locInput">Enter LOC:</label>
-            <input type="number" id="locInput" value={inputValue} onChange={handleInputChange} />
+            <input type="number" id="locInput" value={inputValue} onChange={handleInputChange} min="0" />
           </div>
         ) : (
           <div>
-            <label htmlFor="fpInput">Enter FP:</label>
-            <input type="number" id="fpInput" value={inputValue} onChange={handleInputChange} />
+            <label htmlFor="fpInput">Enter Function Points <strong>(FP)</strong>:</label>
+            <input type="number" id="fpInput" value={inputValue} onChange={handleInputChange} min="0" />
             <label htmlFor="languageSelect">Select Language:</label>
             <select id="languageSelect" onChange={handleLanguageChange} value={selectedLanguage}>
               <option value="">Select</option>
@@ -577,11 +588,13 @@ const calculateLOC = () => {
         )}
       </div>
       {conversionType === 'FP' && (
-  <button onClick={calculateLOC}>Calculate</button>
+  <button className='calculate-button' onClick={calculateLOC}>Calculate</button>
 )}
+      </div>
+       
       
       
-      <p>Total LOC:{totalLOC}</p>
+      {/* <p>Total LOC:{totalLOC}</p> */}
       <Cocomo totalLOC={totalLOC}/>
       
     </div>

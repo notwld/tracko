@@ -98,6 +98,7 @@ const Calculations = ({
         .catch(error => console.error('Error fetching the currency rate:', error));
     }
   }, [secondSelectedCurrency]);
+  
 
   useEffect(() => {
     if (pkrRate) {

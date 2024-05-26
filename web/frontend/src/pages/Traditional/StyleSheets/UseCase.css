@@ -1,0 +1,84 @@
+.use-case-traditional {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 100px;
+}
+h1{
+    font-size: 4rem;
+  
+  }
+input[type="number"]{
+    font-size: 1rem;
+    padding: 10px;
+    border: 2px solid hsla(0, 0%, 80%,0.5);
+    border-radius: 5px;
+    color: hsla(0, 0%, 0%,0.5);
+  }
+/* Container for Use Case Calculations */
+/* .Use-Case-Calculations {
+    flex: 1;
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    
+} */
+.Use-Case-Calculations {
+    flex: 1;
+    font-size: 2rem;
+  font-weight: bold;
+  padding: 10px;
+  background-color: hsl(0, 0%, 97%);
+  margin-bottom: 10px;
+  border: 3px solid hsla(0, 0%, 85%,0.5);
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center; 
+    flex-direction: column; 
+}
+
+/* .Use-Case-Calculations p {
+    font-size: 16px;
+    margin: 10px 0;
+} */
+
+/* Tables Styling */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.table th, .table td {
+    border: 1px solid #ddd;
+    
+}
+
+.table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+
+
+/* Highlight Important Results
+.Use-Case-Calculations h1 {
+    font-size: 24px;
+    color: #333;
+}
+
+.Use-Case-Calculations h2 {
+    font-size: 20px;
+    color: #555;
+    margin-top: 20px;
+} */

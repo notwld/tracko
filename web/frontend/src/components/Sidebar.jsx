@@ -34,8 +34,7 @@ export default function Sidebar() {
                             {project && [
                                 { to: `project/${project.project_id}/backlogs`, icon: faClipboardList, label: 'Backlogs' },
                                 { to: `project/${project.project_id}/poker-planning`, icon: faCubesStacked, label: 'Poker Planning' },
-                                { to: `project/${project.project_id}/board`, icon: faList, label: 'Board' },
-                                { to: `project/${project.project_id}/board`, icon: faLayerGroup, label: 'Layers' },
+                                { to: `project/${project.project_id}/traditional`, icon: faLayerGroup, label: 'Traditional' },
                             ].map((item, index) => (
                                 <div className="sidebar-item" key={index}>
                                     <Link to={item.to} className="sidebar-link">

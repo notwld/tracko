@@ -2,6 +2,9 @@ import { useState } from 'react';
 import './EAF.css'; 
 import { useEffect } from 'react';
 import Effort from './Effort.jsx';
+import '../components/EAF.css';
+import Popover from 'react-bootstrap/Popover';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
 function Eaf({total, totalLOC}) {
 
   const [eaf, setEaf] = useState(0.00);
@@ -35,19 +38,34 @@ function Eaf({total, totalLOC}) {
   useEffect(() => {
     calculateTotal();
   }, [values]); // Run the effect whenever values change
+  const effortAdjustmentFactorsPopup=(
+    <Popover id="popover-basic" className="custom-popover">
+    <Popover.Header as="h3">Effort Adjustment Factors</Popover.Header>
+    <Popover.Body>
+    <p>The<strong> multiplier EAF</strong> in COCOMO II is based on a simplified set of seven Project and process characteristics that influence the estimate.</p> 
+  <p><strong>EAF = PERS * RCPX * RUSE * PDIF * PREX * FCIL * SCED</strong></p>
+<p>These can increase or decrease the effort required.</p>
+
+  
+</Popover.Body>
+    </Popover>
+);
 
   return (
     <div className="container">
       
       <header>
-        <h1>Effort Adjustment Factors</h1>
+      <OverlayTrigger trigger="click" placement='bottom' overlay={effortAdjustmentFactorsPopup} >
+      <h3 style={{marginLeft:"200px"}}><strong>Effort Adjustment Factors</strong></h3>
+
+</OverlayTrigger>
       </header>
 
       <div className="table-container">
-        <h1>EAF Table</h1>
-        <p>{total}</p>
-        <p>LOC from conversion: {totalLOC}</p>
-        <table className="eaf-table">
+        {/* <h1>EAF Table</h1> */}
+        {/* <p>{total}</p> */}
+        {/* <p>LOC from conversion: {totalLOC}</p> */}
+        <table className="table table-striped table-hover"  style={{marginLeft:"140px"}} >
           <thead>
             <tr>
               <th>Scale Factors</th>
@@ -150,7 +168,7 @@ function Eaf({total, totalLOC}) {
           <tfoot>
             <tr>
               <td>Total</td>
-              <td colSpan="7">{eaf}</td>
+              <td colSpan="7">{eaf.toFixed(2)}</td>
             </tr>
           </tfoot>
         </table>

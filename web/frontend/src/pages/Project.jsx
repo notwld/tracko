@@ -179,7 +179,6 @@ export default function Project() {
                                 <tr>
                                     <th>Name</th>
                                     <th>Role</th>
-                                    <th>Productive Hours</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -190,7 +189,6 @@ export default function Project() {
                                             <tr key={i}>
                                                 <td>{user?.username}</td>
                                                 <td>{user?.role}</td>
-                                                <td>0</td>
                                             </tr>
                                         );
                                     })

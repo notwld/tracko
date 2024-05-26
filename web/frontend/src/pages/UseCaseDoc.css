@@ -1,0 +1,20 @@
+.use-case-doc-app {
+    display: flex;
+    justify-content: center; /* Center horizontally */
+    margin-top: 60px;
+}
+
+.img-container {
+    display: flex;
+    flex-direction: column; /* Arrange images vertically */
+}
+
+.img-wrapper {
+    margin-left: 150px;
+    margin-bottom: 5px; Adjust the space between images
+}
+
+.img-wrapper img {
+    height: 600px; /* Set a fixed height for images */
+    width: 1000px; /* Preserve aspect ratio */
+}

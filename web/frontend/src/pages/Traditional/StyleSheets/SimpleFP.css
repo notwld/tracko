@@ -1,0 +1,83 @@
+.Simple-fp {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 100px;
+    margin-left: 200px;
+}
+h1{
+    font-size: 4rem;
+  
+  }
+input[type="number"]{
+    font-size: 1rem;
+    padding: 10px;
+    border: 2px solid hsla(0, 0%, 80%,0.5);
+    border-radius: 5px;
+    color: hsla(0, 0%, 0%,0.5);
+  }
+  input[type="text"]{
+    font-size: 1rem;
+    padding: 10px;
+    border: 2px solid hsla(0, 0%, 80%,0.5);
+    border-radius: 5px;
+    color: hsla(0, 0%, 0%,0.5);
+  }
+
+  .add-component-button,.questions-button,.vaf-questions-button{
+    padding: 8px 12px;
+    font-size: 1.4rem;
+    margin-left: 10px;
+    border-radius: 15px;
+  }
+
+.add-component-title-variable,.add-button-component-modal{
+  margin-left: 10px;
+}
+
+.add-button-1,.add-button-2,.add-button-3,.remove-button,.add-again-button{
+  
+  margin-top: 10px;
+
+}
+.remove-button{
+  
+  margin-top: 10px;
+  width: 150px;
+  font-size: 1.0rem;
+  font-weight: bold;
+  height: 50px;
+  margin-left: 150px;
+}
+.add-again-button {
+  margin-bottom: 10px;
+  font-size: 1.0rem;
+  width: 150px; /* Adjust the width as per your requirement */
+  font-weight: bold;
+  margin-left: 150px;
+  
+}
+
+.component-label{
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+.bold-weight{
+  font-weight: bold;
+}
+.cfp-para{
+  margin-top: 10px;
+}
+.fp-calculations{
+  flex: 1;
+  font-size: 2rem;
+font-weight: bold;
+padding: 10px;
+background-color: hsl(0, 0%, 97%);
+margin-bottom: 10px;
+border: 3px solid hsla(0, 0%, 85%,0.5);
+border-radius: 5px;
+display: flex;
+align-items: center;
+justify-content: center; 
+  flex-direction: column; 
+}

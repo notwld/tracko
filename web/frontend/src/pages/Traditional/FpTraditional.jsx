@@ -225,6 +225,18 @@ const FpTraditional = () => {
   useEffect(() => {
     calculateFunctionalPoints();
   }, [inputs, outputs, files, interfaces, inquiries, questionWeights]);
+  const save = () => {
+    const data = {
+      inputs: inputs,
+      outputs: outputs,
+      files: files,
+      interfaces: interfaces,
+      inquiries: inquiries,
+      questionWeights: questionWeights,
+      
+    };
+  }
+
 
   return (
     <div className="container" style={{ marginTop: '80px', paddingLeft: '180px' }}>

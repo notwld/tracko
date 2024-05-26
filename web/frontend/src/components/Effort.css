@@ -1,0 +1,38 @@
+h1 {
+    font-size: 4rem;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  input[type="number"] {
+    font-size: 1rem;
+    padding: 10px;
+    border: 2px solid hsla(0, 0%, 80%, 0.5);
+    border-radius: 5px;
+    color: hsla(0, 0%, 0%, 0.5);
+    background-color: #f9f9f9;
+    margin-bottom: 20px;
+    width: 200px;
+  }
+  .output-section {
+    background-color: #f1f1f1;
+    padding: 20px;
+    border-radius: 5px;
+    display: inline-block;
+  }
+  
+  
+  .output-section p {
+    margin: 10px 0;
+  }
+  
+  
+  .custom-popover {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    width: 200px;
+  }
+  
+  
+  
