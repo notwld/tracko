@@ -4,6 +4,7 @@ import baseUrl from "../config/baseUrl";
 import { collection, onSnapshot } from "firebase/firestore";
 import { database } from "../config/firebase";
 import 'bootstrap/dist/css/bootstrap.min.css';
+import SprintDetailsModal from '../components/SprintDetailsModal';
 
 export default function Project() {
     const location = useLocation();
@@ -16,6 +17,9 @@ export default function Project() {
     const [projectSize, setProjectSize] = useState([]);
     const [flashMessage, setFlashMessage] = useState(null);
     const [totalFpPoints, setTotalFpPoints] = useState(0);
+    const [sprints, setSprints] = useState([]);
+    const [selectedSprint, setSelectedSprint] = useState(null);
+    const [showModal, setShowModal] = useState(false);
 
     const fetchTeam = async () => {
         try {
@@ -61,6 +65,20 @@ export default function Project() {
             q();
         };
     }, []);
+
+    useEffect(() => {
+        const collectionRef = collection(database, 'sprint');
+        const q = onSnapshot(collectionRef, (querySnapshot) => {
+            const sprintData = [];
+            querySnapshot.forEach((doc) => {
+                sprintData.push(doc.data());
+            });
+            setSprints(sprintData.filter(sprint => sprint.projectId === project.project_id));
+        });
+        return () => {
+            q();
+        };
+    }, [project.project_id]);
 
     const handleOnInvite = async () => {
         setFlashMessage(null);
@@ -126,19 +144,29 @@ export default function Project() {
         return () => {
             q();
         };
-    }, []);
+    }, [project.project_id]);
+
+    const handleSprintClick = (sprint) => {
+        setSelectedSprint(sprint);
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setSelectedSprint(null);
+    };
 
     return (
         <>
             {user && (
-                <div className="container" style={{paddingLeft:"180px",marginTop:"80px"}}>
+                <div className="container" style={{ paddingLeft: "180px", marginTop: "80px" }}>
                     {flashMessage && (
                         <div className="alert alert-success alert-dismissible fade show" role="alert">
                             {flashMessage}
                             <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     )}
-                    
+
                     <div className="row mb-4">
                         <div className="col">
                             <h1 className="display-6">{project?.title}</h1>
@@ -174,7 +202,7 @@ export default function Project() {
                                 </button>
                             </div>
                         )}
-                        <table className="table mt-3">
+                        <table className="table mt-3" style={{ marginLeft: "0px" }} >
                             <thead>
                                 <tr>
                                     <th>Name</th>
@@ -188,7 +216,8 @@ export default function Project() {
                                         return (
                                             <tr key={i}>
                                                 <td>{user?.username}</td>
-                                                <td>{user?.role}</td>
+                                                <td>{user
+                                                    ?.role}</td>
                                             </tr>
                                         );
                                     })
@@ -206,28 +235,34 @@ export default function Project() {
                         </div>
                     </div>
                     <div className="row">
-                        <div className="col-md-4 mb-3">
-                            <div className="card">
-                                <div className="card-body">
-                                    <h5 className="card-title">Milestone-1</h5>
+                        {sprints.length > 0 ? (
+                            sprints.map((sprint, index) => (
+                                <div className="col-md-4 mb-3" key={index}>
+                                    <div className="card" onClick={() => handleSprintClick(sprint)}>
+                                        <div className="card-body">
+                                            <h5 className="card-title">{`Sprint-${index + 1}`}</h5>
+                                            <p className="card-text">
+                                                <strong>Sprint Length:</strong> {sprint.sprintLength} weeks<br />
+                                                <strong>Working Days:</strong> {sprint.workingDays}<br />
+                                                <strong>Story Points:</strong> {sprint.storyPointsPerSprint}<br />
+                                                <strong>Total Availability Hours:</strong> {sprint.totalAvailabilityHours}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                            <div className="card">
-                                <div className="card-body">
-                                    <h5 className="card-title">Milestone-2</h5>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="col-md-4 mb-3">
-                            <div className="card">
-                                <div className="card-body">
-                                    <h5 className="card-title">Milestone-3</h5>
-                                </div>
-                            </div>
-                        </div>
+                            ))
+                        ) : (
+                            <p className="lead">No sprints found.</p>
+                        )}
                     </div>
+
+                    {selectedSprint && (
+                        <SprintDetailsModal
+                            sprint={selectedSprint}
+                            show={showModal}
+                            onClose={handleCloseModal}
+                        />
+                    )}
                 </div>
             )}
         </>

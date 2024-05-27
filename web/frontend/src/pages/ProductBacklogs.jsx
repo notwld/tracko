@@ -21,9 +21,15 @@ export default function ProductBaclogs() {
     const [projectId, setProjectId] = useState(location.pathname.split('/')[2])
     const [backlog, setBacklog] = useState([])
     const [usecases, setUseCases] = useState([])
+    const [loading, setLoading] = useState(false);
+
+    
+
     useEffect(() => {
         const user = localStorage.getItem('user');
         if (user) {
+            // updateBacklogStoryPoints();
+
             const authToken = localStorage.getItem('token');
             setToken(authToken)
             setUser(JSON.parse(user));
@@ -37,6 +43,7 @@ export default function ProductBaclogs() {
     useEffect(() => {
         fetchBacklogs()
         fetchUseCases()
+        
     }, [])
     const close = () => {
         setShowSprintModal(false)
@@ -59,6 +66,7 @@ export default function ProductBaclogs() {
             const backlogData = await response.json();
             console.log(backlogData);
             setBacklog(backlogData.productBacklogs);
+
         }
         catch (error) {
             console.log(error)
@@ -407,7 +415,7 @@ export default function ProductBaclogs() {
                             </div>
                         </div>
                     </div>
-                    <table className="table">
+                    <table className="table" style={{marginLeft:"0px"}}>
                         {backlog?.length > 0 &&
                             <thead>
                                 <tr>
@@ -714,7 +722,7 @@ export default function ProductBaclogs() {
                             </div>
                         </div>
                     </div>
-                    <table className="table">
+                    <table className="table" style={{marginLeft:"0px"}}>
                         {usecases?.length > 0 &&
                             <thead>
                                 <tr>

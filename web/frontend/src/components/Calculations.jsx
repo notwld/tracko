@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { addDoc, collection } from 'firebase/firestore';
+import { database } from '../config/firebase';
 
 const Calculations = ({
   officeHoursPerDay,
@@ -10,6 +12,8 @@ const Calculations = ({
   totalAvailabilityHours,
   totalStoryPoints,
   storyPointsPerSprint,
+  sprintItems,
+  getRemainingItems
 }) => {
 //   const [totalAvailabilityHours, setTotalAvailabilityHours] = useState(0);
 //   const [storyPointsPerSprint, setStoryPointsPerSprint] = useState(0);
@@ -139,9 +143,40 @@ const Calculations = ({
 
     return finalCost.toFixed(2);
   }
+  const save = ()=>{
+    const data = {
+      SalaryAsPerAvailableDays: SalaryAsPerAvailableDays,
+      inflationRate: inflationRate,
+      currencyConversionWeight: currencyConversionWeight,
+      selectedCurrency: selectedCurrency,
+      pkrRate: pkrRate,
+      convertedAmount: convertedAmount,
+      secondSelectedCurrency: secondSelectedCurrency,
+      secondCurrentCurrencyRate: secondCurrentCurrencyRate,
+      secondConvertedAmount: secondConvertedAmount,
+      officeHoursPerDay,
+      sprintLength,
+      workingDays,
+      hrsPerStoryPoint,
+      teamMembers,
+      totalAvailabilityHours,
+      totalStoryPoints,
+      storyPointsPerSprint,
+      sprintItems,
+      projectId:JSON.parse(localStorage.getItem('project')).project_id
 
+
+    }
+    addDoc(collection(database,"sprint"),data).then(()=>{
+      alert("Data Saved")
+      getRemainingItems()
+    }
+    ).catch((error)=>{
+      alert("Error in saving data")
+    })
+  }
   return (
-    <div className="calculations-app">
+    <div className="calculations-app" style={{marginLeft:"0px"}}>
         <h1 className="h-6">
             Calculations
         </h1>
@@ -196,6 +231,9 @@ const Calculations = ({
         <p>1 {secondSelectedCurrency} is equal to {secondConvertedAmount} PKR</p>
       )}
       <p>Converted Amount: {calculateSecondConversion()} {secondSelectedCurrency}</p>
+      <div className="row mt-2">
+        <button className="btn btn-primary" onClick={save}>Save</button>
+      </div>
     </div>
   );
 }
