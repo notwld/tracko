@@ -2,16 +2,20 @@ import React, { useState } from 'react'
 import logo from '../assets/logo.png'
 import { Link, Navigate } from 'react-router-dom'
 import baseUrl from "../config/baseUrl"
+import { useNavigate } from 'react-router-dom'
 
 export default function Login() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const navigate = useNavigate()
 
 
     const handleLogin = async () => {
         try {
             if(email=="hr@tracko.com"&&password=="admin"){
-                return window.location.href = '/admin';
+             ;
+                navigate("/admin")
+                return
             }
             if (email==""&&password==""){
                 alert("Fill all fields")
@@ -34,7 +38,7 @@ export default function Login() {
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
                 localStorage.setItem('userType', JSON.stringify(data.userType));
-                window.location.href = '/home';
+                navigate('/home');
             } else {
                 const errorData = await response.json();
                 console.error(errorData); // Log the error data

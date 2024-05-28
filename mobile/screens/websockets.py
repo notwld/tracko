@@ -21,7 +21,7 @@ def connect():
     
     invite_code = request.json.get('code')
     email = request.json.get('email')
-    req = requests.post('http://127.0.0.1:3000/api/poker-planning/join', json={'code': invite_code, 'email': email})
+    req = requests.post('https://tracko-cb68e46d23ae.herokuapp.com/api/poker-planning/join', json={'code': invite_code, 'email': email})
     print(req.status_code)
     if req.status_code == 400:
         res = json.loads(req.content)
@@ -37,7 +37,7 @@ def usecase():
     
     invite_code = request.json.get('code')
     email = request.json.get('email')
-    req = requests.post('http://127.0.0.1:3000/api/poker-planning/usecase', json={'code': invite_code, 'email': email})
+    req = requests.post('https://tracko-cb68e46d23ae.herokuapp.com/api/poker-planning/usecase', json={'code': invite_code, 'email': email})
     print(req.status_code)
     if req.status_code == 400:
         res = json.loads(req.content)
@@ -56,7 +56,7 @@ def update():
     points = request.json.get('point')
     user_id = request.json.get('user_id')
     print(product_backlog_id, points, user_id)
-    req = requests.post('http://127.0.0.1:3000/api/backlog/update-estimates', json={'product_backlog_id': product_backlog_id, 'points': points, 'user_id': user_id})
+    req = requests.post('https://tracko-cb68e46d23ae.herokuapp.com/api/backlog/update-estimates', json={'product_backlog_id': product_backlog_id, 'points': points, 'user_id': user_id})
     if req.status_code == 400:
         res = json.loads(req.content)
         print(res)

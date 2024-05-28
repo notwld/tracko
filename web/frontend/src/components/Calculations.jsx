@@ -210,7 +210,7 @@ const Calculations = ({
       )}
       <p>Converted Amount: {calculateFirstConversion()} {selectedCurrency}</p>
 
-      <p>Note: if you want to convert the Project Cost into UAE Dirham</p>
+      <p>Note: if you want to convert the Project Cost into any other currency.</p>
       <div>
         <label htmlFor="second-currency-select">Select a Currency (for second conversion): </label>
         <select 

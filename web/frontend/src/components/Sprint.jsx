@@ -6,7 +6,16 @@ import { collection, onSnapshot, getDocs, query, where } from 'firebase/firestor
 import { database } from '../config/firebase';
 
 const Sprint = ({ initialBacklogs, onClose }) => {
+
+    const calculateTotalValue = (questionValues) => {
+        return Object.values(questionValues).reduce((acc, value) => acc + value, 0);
+    };
+
+    const calculateTotalFp = (dataList) => {
+        return dataList.reduce((acc, data) => acc + (data?.totalComplexityScore || 0), 0);
+    };
     console.log('Initial Backlogs:', initialBacklogs);
+    const [useFp, setUseFp] = useState(false);
     const [sprintItems, setSprintItems] = useState([]);
     const [backlogs, setBacklogs] = useState([]);
     const [userStories, setUserStories] = useState([]);
@@ -25,6 +34,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const [currentSprintPoints, setCurrentSprintPoints] = useState(0);
     const [toggleUseCases, setToggleUseCases] = useState(false);
     const [alertMessage, setAlertMessage] = useState(null);
+    const [totalFpPoints, setTotalFpPoints] = useState(0);
 
     const [salaries, setSalaries] = useState(JSON.parse(localStorage.getItem('salaries')) || {});
     const [perDaySalaries, setPerDaySalaries] = useState(JSON.parse(localStorage.getItem('perDaySalaries')) || {});
@@ -58,7 +68,33 @@ const Sprint = ({ initialBacklogs, onClose }) => {
         const totalPoints = userStories.reduce((acc, item) => acc + parseFloat(item.storyPoints || 0), 0);
         setTotalStoryPoints(totalPoints);
     }, [userStories]);
+    useEffect(() => {
+        const collectionRef = collection(database, 'questions');
+        const q = onSnapshot(collectionRef, (querySnapshot) => {
+            const questions = [];
+            querySnapshot.forEach((doc) => {
+                questions.push(doc.data());
+            });
+            const project = JSON.parse(localStorage.getItem('project'));
+            const question = questions.filter((q) => q.projectId === project.project_id);
+            const questionComplexity = question.map((q) => q.complexities);
+            const collectionRef2 = collection(database, 'storypointsWithFP');
+            const q2 = onSnapshot(collectionRef2, (querySnapshot) => {
+                const fps = [];
+                querySnapshot.forEach((doc) => {
+                    fps.push(doc.data());
+                });
+                const filteredFp = fps.filter((fp) => fp.project_id === project.project_id);
+                const totalComplexity = calculateTotalFp(filteredFp);
+                const totalFpPoints = totalComplexity + calculateTotalValue(questionComplexity[0]);
+                setTotalFpPoints(totalFpPoints);
+            });
+        });
 
+        return () => {
+            q();
+        };
+    }, []);
     useEffect(() => {
         const updateBacklogStoryPoints = async () => {
             try {
@@ -169,6 +205,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
 
     const storyPointsPerSprint = (totalAvailabilityHours / hrsPerStoryPoint).toFixed(2);
     const numberOfSprints = (totalStoryPoints / storyPointsPerSprint).toFixed(2);
+    const numberOfSprintsInFP = (totalFpPoints / storyPointsPerSprint).toFixed(2);
 
     const calculateUsecasePoints = (usecase) => {
         const actorPoints = Object.values(usecase.actorWeights).reduce((acc, weight) => acc + weight, 0);
@@ -182,7 +219,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const handleCheckboxChange = (e, item, isUseCase = false) => {
         const itemPoints = isUseCase ? calculateUsecasePoints(item) : parseFloat(item.storyPoints || 0);
         const pointsPerSprint = isUseCase ? usecasePointsPerSprint : storyPointsPerSprint;
-        
+
         if (e.target.checked) {
             let newSprintPoints = currentSprintPoints + itemPoints;
             if (newSprintPoints > pointsPerSprint) {
@@ -203,15 +240,15 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const getRemainingItems = () => {
         const remainingUserStories = userStories.filter(story => !sprintItems.includes(story));
         const remainingUsecases = agileUsecases.filter(usecase => !sprintItems.includes(usecase));
-    
+
         if (remainingUserStories.length > 0) {
             localStorage.setItem('remainingUserStories', JSON.stringify(remainingUserStories));
         }
-    
+
         if (remainingUsecases.length > 0) {
             localStorage.setItem('remainingUsecases', JSON.stringify(remainingUsecases));
         }
-    
+
         return {
             remainingUserStories,
             remainingUsecases,
@@ -323,7 +360,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                         </div>
                         <div className="row mb-4">
                             <div className="col-12">
-                                <label htmlFor="hrsPerStoryPoint" className="form-label">Hours per Story Point</label>
+                                <label htmlFor="hrsPerStoryPoint" className="form-label">Hours per (Story Point/FP/Usecase)</label>
                                 <input
                                     type="number"
                                     className="form-control"
@@ -335,10 +372,14 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                             </div>
                         </div>
                         <div className="row mb-4">
-                            <button className="btn btn-primary my-2" onClick={() => {setToggleUseCases(!toggleUseCases); setSprintItems([]); setCurrentSprintPoints(0);}}>
+                            <button className="btn btn-primary my-2" onClick={() => { setToggleUseCases(!toggleUseCases); setSprintItems([]); setCurrentSprintPoints(0); }}>
                                 {toggleUseCases ? 'Hide Use Cases' : 'Show Use Cases'}
                             </button>
-                            {toggleUseCases ? (
+                            <button className='btn btn-primary' onClick={() => {
+                                setUseFp(!useFp);
+                            }}>{useFp ? 'Hide FP' : 'Use Function Points'}</button>
+
+                            {!useFp && (toggleUseCases ? (
                                 <div className='col-12'>
                                     <table className="table table-bordered" style={{ marginLeft: "0px" }}>
                                         <thead>
@@ -412,11 +453,21 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                         </tbody>
                                     </table>
                                 </div>
-                            )}
+                            ))}
                         </div>
                         <div className="row mb-4">
                             <div className="col-12">
-                                {toggleUseCases ? (
+                                
+                                {useFp && (
+                                    totalFpPoints && (
+                                        <>
+                                        <h5>Total Function Points: {totalFpPoints} (calculated via Poker Planning)</h5>
+                                        <h5>Fp Points per Sprint: {usecasePointsPerSprint}</h5>
+                                        </>
+
+                                    )
+                                )}
+                                {!useFp && (toggleUseCases ? (
                                     <>
                                         <h5>Total Usecase Points: {totalUsecasePoints}</h5>
                                         <h5>Usecase Points per Sprint: {usecasePointsPerSprint}</h5>
@@ -426,9 +477,9 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                         <h5>Total Story Points: {totalStoryPoints.toFixed(2)}</h5>
                                         <h5>Story Points per Sprint: {storyPointsPerSprint}</h5>
                                     </>
-                                )}
+                                ))}
                                 <h5>Total Availability Hours (in Sprint): {totalAvailabilityHours.toFixed(2)}</h5>
-                                <h5>Number of Sprints Required: {!toggleUseCases ? numberOfSprints : numberOfSprintsInUsecase}</h5>
+                                <h5>Number of Sprints Required: {useFp?numberOfSprintsInFP:!toggleUseCases ? numberOfSprints : numberOfSprintsInUsecase}</h5>
                             </div>
                         </div>
                         <div className="row">
@@ -440,7 +491,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                             )}
                         </div>
 
-                        <div className="row">
+                        {!useFp&&(<div className="row">
                             <div className="col-6">
                                 <h4>Sprint</h4>
                                 <table className="table table-bordered" style={{ marginLeft: "0px" }}>
@@ -504,8 +555,10 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                                     </tbody>
                                 </table>
                             </div>
-                        </div>
-                        <div className="row mt-2">
+                        </div>)}
+                        <div className="row mt-1">
+
+
                             <Calculations
                                 officeHoursPerDay={officeHours}
                                 sprintLength={sprintLength}
