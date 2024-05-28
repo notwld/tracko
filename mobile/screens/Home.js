@@ -39,7 +39,7 @@ const Home = () => {
             else if(method==="Usecase Points Agile"){
                 console.log("Usecase Points Agile")
                  try {
-                const res = await fetch("http://192.168.1.106:19002/usecase", {
+                const res = await fetch("https://temp09-4666db80231c.herokuapp.com/usecase", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -86,7 +86,7 @@ const Home = () => {
             else if(method==="Usecase Points"){
                 console.log("Usecase Points")
                  try {
-                const res = await fetch("http://192.168.1.106:19002/usecase", {
+                const res = await fetch("https://temp09-4666db80231c.herokuapp.com/usecase", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'
@@ -132,7 +132,7 @@ const Home = () => {
             }
             else if(method==="FP Metrices"){
                 try {
-                    const res = await fetch("http://192.168.1.106:19002/code", {
+                    const res = await fetch("https://temp09-4666db80231c.herokuapp.com/code", {
                         method: "POST",
                         headers: {
                             'Content-Type': 'application/json'
@@ -181,7 +181,7 @@ const Home = () => {
             else if(method==="User Story"){
                 console.log("User Story")
                  try {
-                const res = await fetch("http://192.168.1.106:19002/code", {
+                const res = await fetch("https://temp09-4666db80231c.herokuapp.com/code", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/json'

@@ -25,18 +25,22 @@ export default {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
-      }
+      },
+      "package": "com.blurryface.chatapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    extra: {
-      apiKey: process.env.API_KEY,
-      authDomain: process.env.AUTH_DOMAIN,
-      projectId: process.env.PROJECT_ID,
-      storageBucket: process.env.STORAGE_BUCKET,
-      messagingSenderId: process.env.MESSAGING_SENDER_ID,
-      appId: process.env.APP_ID
+    "extra": {
+      "apiKey": process.env.API_KEY,
+      "authDomain": process.env.AUTH_DOMAIN,
+      "projectId": process.env.PROJECT_ID,
+      "storageBucket": process.env.STORAGE_BUCKET,
+      "messagingSenderId": process.env.MESSAGING_SENDER_ID,
+      "appId": process.env.APP_ID,
+      "eas": {
+        "projectId": "1198c9c9-c53e-404c-ba9e-7f318f2a52e4"
+      }
     }
   }
 }

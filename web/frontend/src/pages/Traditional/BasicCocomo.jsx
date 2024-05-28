@@ -761,11 +761,11 @@ function BasicCocomo() {
                       <th>Project Level</th>
                       <th>Conversion Type</th>
                       <th>Language</th>
-                      <th>Input Value</th>
-                      <th>Total LOC</th>
-                      <th>Effort Applied</th>
-                      <th>Development Time</th>
-                      <th>Cost</th>
+                      
+                      <th>KLOC</th>
+                      <th>Effort Applied (person-month)</th>
+                      <th>Development Time (months)</th>
+                      <th>Total Cost</th>
                       <th>Action</th>
                     </tr>
                   </thead>
@@ -776,7 +776,7 @@ function BasicCocomo() {
     <td>{data.projectLevel}</td>
     <td>{data.conversionType}</td>
     <td>{data.selectedLanguage}</td>
-    <td>{data.inputValue}</td>
+    
     <td>{data.totalLOC}</td>
     <td>{data.effortApplied.toFixed(2)}</td>
     <td>{data.developmentTime.toFixed(1)}</td>

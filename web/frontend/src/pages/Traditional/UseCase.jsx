@@ -466,13 +466,13 @@ function UseCase() {
                 <table className="table table-bordered" style={{marginLeft:"0px"}}>
                   <thead>
                     <tr>
-                      <th>UCP</th>
-                      <th>Duration</th>
-                      <th>Effort</th>
-                      <th>Cost</th>
+                      <th>Use Case Point (UCP)</th>
+                      <th>Duration (months)</th>
+                      <th>Effort (person-month)</th>
+                      <th>Cost ($)</th>
                       <th>Staff</th>
                      
-                      <th>UCP person-month</th>
+                      <th>UCP (person-month)</th>
                       <th>Cost per UCP</th>
                       <th>Action</th>
                     </tr>

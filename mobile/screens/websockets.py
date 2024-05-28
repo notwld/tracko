@@ -3,7 +3,7 @@ import requests
 import secrets
 from flask_cors import CORS
 import json,time
-
+import os
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
@@ -94,4 +94,4 @@ def backlogs():
 
 ], 200
 if __name__ == '__main__':
-    app.run(debug=True,host="0.0.0.0",port="19002")
+    app.run(debug=True,host="0.0.0.0",port=os.environ.get('PORT', 5000))

@@ -5,6 +5,7 @@
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
+    "postinstall": "patch-package",
     "ios": "expo start --ios",
     "web": "expo start --web",
     "eject": "expo eject"
@@ -22,6 +23,7 @@
     "expo-status-bar": "~1.11.1",
     "firebase": "^9.9.3",
     "install": "^0.13.0",
+    "patch-package": "^8.0.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-native": "0.73.6",

@@ -775,6 +775,7 @@ function SimpleFP() {
             </p> */}
             {/* <p>VAF: {((count.questionsVAF * 0.01) + 0.65)}</p> */}
             <p className="cfp-para"><strong>CFP</strong> is the unadjusted function points added by the conversion unadjusted function point count</p>
+            <p>Enter CFP:</p>
             <input
                 type="number"
                 placeholder="Enter CFP"
@@ -782,8 +783,8 @@ function SimpleFP() {
                 onChange={handleCFPCalculation}
                 min="0"
             />
-            <p>CFP: {CFP}</p>
-            <p>Enter FP person-months:</p>
+            {/* <p>CFP: {CFP}</p> */}
+            <p>Enter FP person-month:</p>
             <input type="number" placeholder="Enter FP" value={FpPersonMonths} onChange={handleFPCalculation} min="0" />
             {/* <p>FP: {FpPersonMonths}</p> */}
             <p>Enter Cost of 1 FP:</p>
@@ -1153,14 +1154,14 @@ function SimpleFP() {
     <thead>
       <tr>
       <th>Project ID</th>
-      <th>Function Point</th>
-        <th>Effort</th>
-        <th>Cost</th>
-        <th>DFP</th>
-        <th>Effort DFP</th>
-        <th>Cost DFP</th>
-        <th>CFP</th>
-        <th>FP Person Months</th>
+      <th>Function Point (Simple)</th>
+        <th>Effort (Simple FP)</th>
+        <th>Cost (Simple FP)</th>
+        <th>Development Project Function Point (DFP)</th>
+        <th>Effort (DFP)</th>
+        <th>Cost (DFP)</th>
+        <th>CFP (for DFP)</th>
+        <th>FP (Person-Month)</th>
         <th>Cost of 1 FP</th>
         
        
