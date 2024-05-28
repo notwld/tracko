@@ -69,13 +69,14 @@ const Sprint = ({ initialBacklogs, onClose }) => {
         setTotalStoryPoints(totalPoints);
     }, [userStories]);
     useEffect(() => {
+        const project = JSON.parse(localStorage.getItem('project'));
+
         const collectionRef = collection(database, 'questions');
         const q = onSnapshot(collectionRef, (querySnapshot) => {
             const questions = [];
             querySnapshot.forEach((doc) => {
                 questions.push(doc.data());
             });
-            const project = JSON.parse(localStorage.getItem('project'));
             const question = questions.filter((q) => q.projectId === project.project_id);
             const questionComplexity = question.map((q) => q.complexities);
             const collectionRef2 = collection(database, 'storypointsWithFP');
@@ -91,8 +92,25 @@ const Sprint = ({ initialBacklogs, onClose }) => {
             });
         });
 
+
+        const collectionRef3 = collection(database, 'sprint');
+        const q3 = onSnapshot(collectionRef3, (querySnapshot) => {
+            const sprints = [];
+            querySnapshot.forEach((doc) => {
+                sprints.push(doc.data());
+            });
+            const sprint = sprints.filter((s) => s.projectId === project.project_id);
+            const inProgressItems = sprint.flatMap(s => s.sprintItems.filter(item => item.progress === "In Progress"));
+
+            setSprintItems(inProgressItems);
+            setCurrentSprintPoints(inProgressItems.reduce((acc, item) => acc + parseFloat(item.storyPoints || 0), 0));            
+        });
+        // remove sprint items from users stories
+        
+        setUserStories(userStories.filter(story => !sprintItems.includes(story)));
         return () => {
             q();
+            q3();
         };
     }, []);
     useEffect(() => {
@@ -217,6 +235,7 @@ const Sprint = ({ initialBacklogs, onClose }) => {
     const numberOfSprintsInUsecase = (totalUsecasePoints / storyPointsPerSprint).toFixed(2);
 
     const handleCheckboxChange = (e, item, isUseCase = false) => {
+        item.progress = "In Progress"
         const itemPoints = isUseCase ? calculateUsecasePoints(item) : parseFloat(item.storyPoints || 0);
         const pointsPerSprint = isUseCase ? usecasePointsPerSprint : storyPointsPerSprint;
 
@@ -372,12 +391,34 @@ const Sprint = ({ initialBacklogs, onClose }) => {
                             </div>
                         </div>
                         <div className="row mb-4">
-                            <button className="btn btn-primary my-2" onClick={() => { setToggleUseCases(!toggleUseCases); setSprintItems([]); setCurrentSprintPoints(0); }}>
-                                {toggleUseCases ? 'Hide Use Cases' : 'Show Use Cases'}
+                            {/* <button className="btn btn-primary my-2" onClick={() => { setUseFp(false);setToggleUseCases(!toggleUseCases); setSprintItems([]); setCurrentSprintPoints(0); }}>
+                                {toggleUseCases ? 'Show User Stories' : 'Show Use Cases'}
                             </button>
                             <button className='btn btn-primary' onClick={() => {
                                 setUseFp(!useFp);
-                            }}>{useFp ? 'Hide FP' : 'Use Function Points'}</button>
+                            }}>{useFp ? 'Hide FP' : 'Use Function Points'}</button> */}
+                            <div className="row d-flex justify-content-center">
+                                <div className="col">
+                                <select className="form-select" onChange={(e) => {
+                                    if (e.target.value === 'useFp') {
+                                        setUseFp(true);
+                                        setToggleUseCases(false);
+                                    } else if (e.target.value === 'useUsecases') {
+                                        setUseFp(false);
+                                        setToggleUseCases(true);
+                                    } else {
+                                        setUseFp(false);
+                                        setToggleUseCases(false);
+                                    }
+                                }
+                                }>
+                                    <option value="useStories">Use Stories</option>
+                                    <option value="useFp">Use Function Points</option>
+                                    <option value="useUsecases">Use Usecases</option>
+                                </select>
+                                </div>
+
+                            </div>
 
                             {!useFp && (toggleUseCases ? (
                                 <div className='col-12'>

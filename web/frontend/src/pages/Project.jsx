@@ -71,7 +71,7 @@ export default function Project() {
         const q = onSnapshot(collectionRef, (querySnapshot) => {
             const sprintData = [];
             querySnapshot.forEach((doc) => {
-                sprintData.push(doc.data());
+                sprintData.push({ ...doc.data(), id: doc.id });
             });
             setSprints(sprintData.filter(sprint => sprint.projectId === project.project_id));
         });
