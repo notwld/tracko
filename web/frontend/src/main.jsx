@@ -26,6 +26,7 @@ import HR from './pages/HR.jsx'
 import UseCaseDoc from './pages/UseCaseDoc.jsx'
 import Calculations from './pages/Traditional/Calculations.jsx'
 import Traditional from './pages/Traditional.jsx'
+import Landing from './pages/Landing.jsx'
 
 
 const routes = createBrowserRouter([
@@ -33,6 +34,10 @@ const routes = createBrowserRouter([
     path: "/",
     element: <App />,
     children:[
+      {
+        path: "/welcome",
+        element: <Landing />
+      },
       {
         path: "/login",
         element: <Login />

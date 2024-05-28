@@ -9,6 +9,7 @@ import { Link, useLocation } from 'react-router-dom';
 import "../Traditional/StyleSheets/SimpleFP.css";
 import { addDoc, collection } from "firebase/firestore";
 import { database } from "../../config/firebase";
+import { onSnapshot, updateDoc, query ,deleteDoc, doc} from 'firebase/firestore';
 
 function SimpleFP() {
     const [show, setShow] = useState(false);
@@ -570,15 +571,17 @@ function SimpleFP() {
             </Popover.Body>
         </Popover>
     );
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [savedData, setSavedData] = useState([]);
 
     const save = () => {
         const data = {
-            fp: calculateSimpleFP(),
-            effort: calculateSimpleFP() / FpPersonMonths,
-            cost: calculateSimpleFP() * CostofOneFp,
-            dfp: calculateDFP(),
-            effortDFP: calculateDFP() / FpPersonMonths,
-            costDFP: calculateDFP() * CostofOneFp,
+            fp: calculateSimpleFP().toFixed(2),
+            effort: (calculateSimpleFP() / FpPersonMonths).toFixed(2),
+            cost: (calculateSimpleFP() * CostofOneFp).toFixed(2),
+            dfp: (calculateDFP()).toFixed(2),
+            effortDFP: (calculateDFP() / FpPersonMonths).toFixed(2),
+            costDFP: (calculateDFP() * CostofOneFp).toFixed(2),
             cfp: CFP,
             fpPersonMonths: FpPersonMonths,
             costofOneFp: CostofOneFp,
@@ -593,6 +596,40 @@ function SimpleFP() {
             console.error("Error writing document: ", error);
         });
     }
+    const fetchSavedData = () => {
+        const q = query(collection(database, "simpleFP"));
+        onSnapshot(q, (querySnapshot) => {
+          const data = [];
+          querySnapshot.forEach((doc) => {
+            data.push({ id: doc.id, ...doc.data() }); // Include the document ID in the object
+          });
+          console.log("Retrieved data from Firestore:", data); // Log the retrieved data
+          setSavedData(data);
+        });
+      };
+      
+    const openModal = () => {
+        fetchSavedData();
+        setIsModalOpen(true);
+      };
+    
+      const closeModal = () => {
+        setIsModalOpen(false);
+      };
+      const deleteRow = async (index) => {
+        const docId = savedData[index].id; // Assuming each document in Firestore has a unique ID
+        const newData = [...savedData];
+        newData.splice(index, 1);
+        setSavedData(newData);
+      
+        try {
+          await deleteDoc(doc(database, "simpleFP", docId));
+          console.log("Document successfully deleted!");
+        } catch (error) {
+          console.error("Error removing document: ", error);
+        }
+      };
+
 
 
     return (
@@ -619,8 +656,13 @@ function SimpleFP() {
             <h2> DFP (Development Project Function Point): {calculateDFP().toFixed(2)} </h2>
             <h2> Effort from DFP:{(calculateDFP()/FpPersonMonths).toFixed(2)} Person-months </h2>
             <h2> Cost of Project:{(calculateDFP()*CostofOneFp).toFixed(2)} $ </h2>
+            <div>
             <button className="btn btn-primary" onClick={save}>Save</button>
+            <button className='btn btn-secondary' style={{marginLeft:"10px"}} onClick={openModal}>History</button>
+
             </div>
+            </div>
+          
             <Button variant="primary" className="add-component-button" onClick={handleShow}>
                 Add Component
             </Button>
@@ -1098,6 +1140,64 @@ function SimpleFP() {
                     </tr>
                 </tbody>
             </Table>
+            {isModalOpen && (
+        <div className="modal fade show d-block" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog modal-lg" style={{ maxWidth: '80%' }}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLabel">History</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body">
+  <table className="table table-bordered" style={{ marginLeft: "0px" }}>
+    <thead>
+      <tr>
+      <th>Project ID</th>
+      <th>Function Point</th>
+        <th>Effort</th>
+        <th>Cost</th>
+        <th>DFP</th>
+        <th>Effort DFP</th>
+        <th>Cost DFP</th>
+        <th>CFP</th>
+        <th>FP Person Months</th>
+        <th>Cost of 1 FP</th>
+        
+       
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {savedData.map((data, index) => (
+        <tr key={index}>
+            <td>{data.projectId}</td>
+            <td>{data.fp}</td>
+            <td>{data.effort}</td>
+            <td>{data.cost}</td>
+            <td>{data.dfp}</td>
+            <td>{data.effortDFP}</td>
+            <td>{data.costDFP}</td>
+            <td>{data.cfp}</td>
+            <td>{data.fpPersonMonths}</td>
+            <td>{data.costofOneFp}</td>
+
+          
+          <td>
+            <button className="btn btn-danger" onClick={() => deleteRow(index)}>Delete</button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={closeModal}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
             <div className='references' style={{marginLeft:"-0px"}}>
                 <h3>References</h3>
                 <ul>

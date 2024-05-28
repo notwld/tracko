@@ -78,7 +78,7 @@ export default function Home() {
       setToken(authToken);
       setUserType(JSON.parse(storedUserType));
     } else {
-      navigate("/login");
+      navigate("/welcome");
     }
   }, [navigate]);
 

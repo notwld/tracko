@@ -1,0 +1,194 @@
+.MainLogo{
+    width: 150px;
+  }
+  @media only screen and (max-width: 600px) {
+    .bg-body-tertiary{
+      padding-top: 20px !important;
+      padding-bottom: 20px !important;
+    }
+  }
+  .sign-txt{
+   background-color: #0052CC; 
+   padding: 8px 20px;
+   color: white;
+   border: #0052CC;
+   border-radius: 5px;
+   cursor: pointer;
+  }
+  .red{
+    border: 1px solid red;
+  }
+  .bg-body-tertiary {
+      --bs-bg-opacity: 1;
+      background-color: rgba(236, 236, 236, 0.574) !important;
+  }
+  .head-text{
+   font-size: 66px; 
+   line-height: 77px;
+   font-weight: 400;
+  }
+  .head-text1{
+    font-size: 66px; 
+    font-weight: 400;
+  }
+  .head-txt{
+    font-weight: 700;
+  }
+  .head-sectxt{
+    position: relative;
+  }
+  .head-img{
+    width: 150px;
+    position: absolute;
+    right: 40%;
+    top: 80%;
+  }
+  @media only screen and (max-width: 998px) {
+    .head-text,.head-text1{
+      font-size: 56px; 
+    }
+    .head-img{
+      right: 38%;
+      top: 80%;
+    }
+  }
+  @media only screen and (max-width: 768px) {
+    .head-text,.head-text1{
+      font-size: 36px; 
+      line-height: 46px;
+    }
+    .head-img{
+      right: 38%;
+      top: 80%;
+      width: 100px;
+    }
+  }
+  .custom-width{
+    height: 100vh;
+  }
+  .home-secCont{
+   /* background: silver; 
+    */
+    box-shadow: 0px 0px 10px rgba(192, 192, 192, 0.615);
+    border-radius: 12px;
+  }
+  .pokerPlainImg{
+    width: 100%;
+  }
+  .col-box{
+  border-radius: 12px;  
+  box-shadow: 0px 0px 10px rgba(192, 192, 192, 0.615);
+  }
+  
+  :root {
+    --bg-light: #F5F5FC;
+    --bg-dark: #35353C;
+    --bg-darker: #15151C;
+    --font-body: #55555C;
+    --shadow: #C5C5CC;
+  }
+  
+  .demo_title h1,h6{
+    color: var(--bg-darker);
+  }
+  
+  
+  #copyrights a{
+    text-decoration: none;
+    color: var(--bg-darker);
+  }
+  
+  /* tpn card style */
+  .tpn_card{
+    background: var(--bg-light);
+    padding: 23px;
+    border-radius:27px;
+  }
+  
+  .tpn_card img{
+    border-radius:23px;
+    box-shadow: 1px 7px 13px var(--shadow);
+  }
+  
+  .tpn_card h5{
+    color: var(--bg-dark);
+  }
+  
+  .tpn_card p{
+    color: var(--font-body);
+    font-weight:400;
+    margin-bottom:24px;
+  }
+  
+  .tpn_card .tpn_btn{
+    padding:13px 27px !important;
+    line-height: normal;
+    background: var(--bg-dark);
+    border-radius:17px;
+    text-decoration:none;
+    color: #FFF;
+    box-shadow: 1px 7px 13px var(--shadow);
+    transition: all .7s ease;
+  }
+  
+  .tpn_card .tpn_btn:hover{
+    background: var(--bg-darker);
+    box-shadow: none;
+  }
+  .planningpoker p{
+    color: var(--font-body);
+    font-weight:400;
+    margin-bottom:24px;
+    text-align: justify;
+  }
+  .image_what{
+    width: 400px;
+  }
+  
+  @media only screen and (max-width: 700px) {
+    .image_what{
+      width: 350px;
+    }
+  }
+  .about-cont{
+   background: linear-gradient(45deg, #F2EEFD 0%, #E1BEFC 100%);
+   border-radius: 12px;
+  }
+  /* tpn card style */
+  .all_card{
+    background-color: rgb(222, 178, 249);  
+    padding: 23px;
+    border-radius:27px;
+    
+  }
+  .all_card {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Add some space between the cards */
+    background-color: rgb(222, 178, 249);  
+    padding: 23px;
+    border-radius: 27px;
+  }
+  .all_card {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column layout */
+    gap: 20px; /* Add some space between the cards */
+    background-color: rgb(222, 178, 249);  
+    padding: 23px;
+    border-radius: 27px;
+  }
+  
+  @media (min-width: 768px) {
+    .all_card {
+      grid-template-columns: repeat(2, 1fr); /* Two columns for medium screens and up */
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .all_card {
+      grid-template-columns: repeat(3, 1fr); /* Three columns for large screens and up */
+    }
+  }
+  
+  
+  

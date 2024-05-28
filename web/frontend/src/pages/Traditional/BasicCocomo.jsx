@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import './StyleSheets/BasicCocomo.css';
 import { Link } from 'react-router-dom';
 import { database } from '../../config/firebase';
-import { onSnapshot, collection, addDoc, updateDoc } from 'firebase/firestore';
+import { onSnapshot, collection, addDoc, updateDoc, query ,deleteDoc, doc} from 'firebase/firestore';
+
 function BasicCocomo() {
   const [project, setProject] = useState(JSON.parse(localStorage.getItem('project')) || '');
-
   const [projectLevel, setProjectLevel] = useState('');
   const [selectedValues, setSelectedValues] = useState({
     a: '',
@@ -13,7 +13,6 @@ function BasicCocomo() {
     c: '',
     d: ''
   });
-
   const [conversionType, setConversionType] = useState('LOC');
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [inputValue, setInputValue] = useState('');
@@ -21,18 +20,18 @@ function BasicCocomo() {
   const [effortApplied, setEffortApplied] = useState(0);
   const [developmentTime, setDevelopmentTime] = useState(0);
   const [costPerPersonMonth, setCostPerPersonMonth] = useState(0.00);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [savedData, setSavedData] = useState([]);
+
   function handleCostPerPersonsMonth(e) {
     let value = e.target.value;
-    // Convert to number only if it's not empty
     if (value !== "") {
       value = parseFloat(value);
-      // If conversion is not successful or the value is negative, return
       if (isNaN(value) || value < 0) return;
     }
     setCostPerPersonMonth(value);
-
   }
-  // Data for languages and their average source statements per function point
+
   const languageData = {
     "1032/AF": 16,
     "1st Generation default": 320,
@@ -157,6 +156,11 @@ function BasicCocomo() {
     "DCL": 213,
     "DEC-RALLY": 40,
     "Decision support default": 36,
+    "PHP":53.33,
+    "PYTHON":53.33,
+    "C#":51.20,
+
+  
     "DELPHI": 29,
     "DL/1": 40,
     "DNA-4": 19,
@@ -219,6 +223,7 @@ function BasicCocomo() {
     "GeODE 2.0": 16,
     "GFA Basic": 34,
     "GML": 46,
+    "RUBY":45.71,
     "Golden Common LISP": 64,
     "GPSS": 46,
     "GUEST": 28,
@@ -230,6 +235,7 @@ function BasicCocomo() {
     "HP BASIC": 128,
     "HTML 2.0": 16,
     "HTML 3.0": 15,
+    "HTML": 160,
     "Huron": 16,
     "IBM ADF I": 20,
     "IBM ADF II": 18,
@@ -503,6 +509,8 @@ function BasicCocomo() {
     "VULCAN": 64,
     "VZ Programmer": 36,
     "WARP X": 40,
+    "XML":128,
+    
     "WATCOM C": 128,
     "WATCOM C/386": 128,
     "Waterloo C": 128,
@@ -518,6 +526,7 @@ function BasicCocomo() {
     "ZIM": 19,
     "ZLISP": 64,
   };
+
 
   const handleProjectLevelChange = (event) => {
     const level = event.target.value;
@@ -540,18 +549,37 @@ function BasicCocomo() {
 
   const handleConversionTypeChange = (event) => {
     setConversionType(event.target.value);
-    setInputValue(''); // Reset input value when conversion type changes
-    setTotalLOC(0); // Reset totalLOC when conversion type changes
+    setInputValue('');
+    setTotalLOC(0);
   };
 
   const handleLanguageChange = (event) => {
     setSelectedLanguage(event.target.value);
   };
 
+  const deleteRow = async (index) => {
+    const docId = savedData[index].id; // Assuming each document in Firestore has a unique ID
+    const newData = [...savedData];
+    newData.splice(index, 1);
+    setSavedData(newData);
+  
+    try {
+      await deleteDoc(doc(database, "BasicCocomo", docId));
+      console.log("Document successfully deleted!");
+    } catch (error) {
+      console.error("Error removing document: ", error);
+    }
+  };
+  
+  
+  
+  
+  
+  
+
   const handleInputChange = (event) => {
     const value = event.target.value;
     if (value < 0) {
-      // If the value is less than 0, do not update the state
       return;
     }
     setInputValue(value);
@@ -590,6 +618,7 @@ function BasicCocomo() {
     setEffortApplied(effort);
     setDevelopmentTime(time);
   }, [totalLOC, selectedValues]);
+
   const save = () => {
     const data = {
       projectLevel: projectLevel,
@@ -603,17 +632,38 @@ function BasicCocomo() {
       costPerPersonMonth: costPerPersonMonth,
       projectId: parseInt(project.project_id)
     };
-    const docRef = addDoc(collection(database, "BasicCocomo"), data).then(() => {
-      alert("Data saved successfully")
+    addDoc(collection(database, "BasicCocomo"), data).then(() => {
+      alert("Data saved successfully");
       console.log("Document written with ID: ");
     })
-      .catch((error) => {
-        console.error("Error adding document: ", error);
-      });
-
-
+    .catch((error) => {
+      console.error("Error adding document: ", error);
+    });
     console.log(data);
-  }
+  };
+
+  const fetchSavedData = () => {
+    const q = query(collection(database, "BasicCocomo"));
+    onSnapshot(q, (querySnapshot) => {
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() }); // Include the document ID in the object
+      });
+      console.log("Retrieved data from Firestore:", data); // Log the retrieved data
+      setSavedData(data);
+    });
+  };
+  
+
+  const openModal = () => {
+    fetchSavedData();
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className='basic-cocomo-app'>
       <header>
@@ -630,7 +680,7 @@ function BasicCocomo() {
         </select>
       </div>
       {projectLevel && (
-        <div className='output-section' >
+        <div className='output-section'>
           <p>a = {selectedValues.a}</p>
           <p>b = {selectedValues.b}</p>
           <p>c = {selectedValues.c}</p>
@@ -693,14 +743,65 @@ function BasicCocomo() {
         <p>Average Staff Size: {Math.floor(effortApplied / developmentTime)} Persons</p>
         <p>Cost: {Math.floor(effortApplied * costPerPersonMonth)} $</p>
         <button className='btn btn-primary' onClick={save}>Save</button>
+        <button className='btn btn-secondary' style={{marginLeft:"10px"}} onClick={openModal}>History</button>
       </div>
+
+      {isModalOpen && (
+        <div className="modal fade show d-block" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog modal-lg" style={{ maxWidth: '80%' }}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLabel">History</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body" >
+                <table className="table table-bordered" style={{marginLeft:"0px"}}>
+                  <thead>
+                    <tr>
+                      <th>Project Level</th>
+                      <th>Conversion Type</th>
+                      <th>Language</th>
+                      <th>Input Value</th>
+                      <th>Total LOC</th>
+                      <th>Effort Applied</th>
+                      <th>Development Time</th>
+                      <th>Cost</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  
+{savedData.map((data, index) => (
+  <tr key={index}>
+    <td>{data.projectLevel}</td>
+    <td>{data.conversionType}</td>
+    <td>{data.selectedLanguage}</td>
+    <td>{data.inputValue}</td>
+    <td>{data.totalLOC}</td>
+    <td>{data.effortApplied.toFixed(2)}</td>
+    <td>{data.developmentTime.toFixed(1)}</td>
+    <td>{Math.floor(data.effortApplied * data.costPerPersonMonth)} $</td>
+    <td><button className='btn btn-danger' onClick={() => deleteRow(index)}>Delete</button></td>
+  </tr>
+))}
+
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={closeModal}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className='references'>
         <h3>References</h3>
         <ul>
-
-          <li>Stutzke, Richard.<Link to={"https://web.archive.org/web/20200328141813/https://uweb.engr.arizona.edu/~ece473/readings/14-Software%20Estimating%20Technology.doc"} >Software Estimating Technology: A Survey</Link>. Archived from the original on 28 March 2020. Retrieved 9 Oct 2016.</li>
+          <li>Stutzke, Richard. <Link to={"https://web.archive.org/web/20200328141813/https://uweb.engr.arizona.edu/~ece473/readings/14-Software%20Estimating%20Technology.doc"}>Software Estimating Technology: A Survey</Link>. Archived from the original on 28 March 2020. Retrieved 9 Oct 2016.</li>
           <li>Boehm, Barry (1981). <Link to={"https://archive.org/details/softwareengineer0000boeh"}>Software Engineering Economics</Link>. Prentice-Hall. ISBN 0-13-822122-7.</li>
-          <li>Barry Boehm, Chris Abts, A. Winsor Brown, Sunita Chulani, Bradford K. Clark, Ellis Horowitz, Ray Madachy, Donald J. Reifer, and Bert Steece. <Link to={"https://en.wikipedia.org/wiki/Software_Cost_Estimation_with_COCOMO_II_(book)"}>Software Cost Estimation with COCOMO II</Link> (with CD-ROM). Englewood Cliffs, NJ:Prentice-Hall, 2000. ISBN 0-13-026692-2</li>
+          <li>Barry Boehm, Chris Abts, A. Winsor Brown, Sunita Chulani, Bradford K. Clark, Ellis Horowitz, Ray Madachy, Donald J. Reifer, and Bert Steece. <Link to={"https://en.wikipedia.org/wiki/Software_Cost_Estimation_with_COCOMO_II_(book)"}>Software Cost Estimation with COCOMO II</Link> (with CD-ROM). Englewood Cliffs, NJ: Prentice-Hall, 2000. ISBN 0-13-026692-2</li>
         </ul>
       </div>
     </div>

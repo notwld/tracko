@@ -9,10 +9,11 @@ export default function Sidebar() {
     const [user, setUser] = useState(null);
     const [project, setProject] = useState(null);
     const [showSidebar, setShowSidebar] = useState(true);
-
+    useEffect(() => {
+        setShowSidebar(!(location.pathname === '/welcome' || location.pathname === '/home'));
+      }, [location]);
    
   useEffect(() => {
-    setShowSidebar(location.pathname !== '/home');
     
     const user = localStorage.getItem('user');
     if (user) {

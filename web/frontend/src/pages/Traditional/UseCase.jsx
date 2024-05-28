@@ -3,6 +3,7 @@ import "../Traditional/StyleSheets/UseCase.css";
 import {Link} from "react-router-dom";
 import { addDoc, collection } from "firebase/firestore";
 import { database } from "../../config/firebase";
+import { onSnapshot, updateDoc, query ,deleteDoc, doc} from 'firebase/firestore';
 
 function UseCase() {
     const [simpleUseCase, setSimpleUseCase] = useState("");
@@ -52,6 +53,8 @@ function UseCase() {
     const [NoOfPersons,setNoOfPersons] = useState("");
     const [UcpPersonMonth, setUcpPersonMonth] = useState("");
     const [cost, setCost] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [savedData, setSavedData] = useState([]);
 
 
     function handleSimpleActorChange(e) {
@@ -198,12 +201,12 @@ function UseCase() {
     };
 
     const calculateUCP = () => {
-        return (totalUseCase + totalActorWeight) * (1.4 + (-0.03 * totalEnvironmentalFactorImpact)) * (0.6 + (0.01 * totalTfactor));
+        return ((totalUseCase + totalActorWeight) * (1.4 + (-0.03 * totalEnvironmentalFactorImpact)) * (0.6 + (0.01 * totalTfactor))).toFixed(2);
     };
 
     const calculateDurationInMonths = () => {
       
-        return calculateEffortinPersonMonths()/NoOfPersons;
+        return (calculateEffortinPersonMonths()/NoOfPersons).toFixed(2);
     };
     // const calculateDurationInMonths = () => {
     //     const durationInHrs = calculateUCP() * teamProgressDurationPerUseCase;
@@ -223,10 +226,10 @@ function UseCase() {
     //     return durationInHrs.toFixed(1);
     // };
     const calculateEffortinPersonMonths = () => {
-        return calculateUCP()/UcpPersonMonth;
+        return (calculateUCP()/UcpPersonMonth).toFixed(2);
     };
     const calculateCost = () => {
-        return calculateUCP() * cost;
+        return (calculateUCP() * cost).toFixed(2);
     }
 
     const save = ()=>{
@@ -242,19 +245,59 @@ function UseCase() {
         addDoc(collection(database, "useCaseTraditional"), data).then(()=>
             alert("Data Saved")
         )
-
+        
 
     }
+    const fetchSavedData = () => {
+        const q = query(collection(database, "useCaseTraditional"));
+        onSnapshot(q, (querySnapshot) => {
+          const data = [];
+          querySnapshot.forEach((doc) => {
+            data.push({ id: doc.id, ...doc.data() }); // Include the document ID in the object
+          });
+          console.log("Retrieved data from Firestore:", data); // Log the retrieved data
+          setSavedData(data);
+        });
+      };
+      
+    const openModal = () => {
+        fetchSavedData();
+        setIsModalOpen(true);
+      };
+    
+      const closeModal = () => {
+        setIsModalOpen(false);
+      };
+      const deleteRow = async (index) => {
+        const docId = savedData[index].id; // Assuming each document in Firestore has a unique ID
+        const newData = [...savedData];
+        newData.splice(index, 1);
+        setSavedData(newData);
+      
+        try {
+          await deleteDoc(doc(database, "useCaseTraditional", docId));
+          console.log("Document successfully deleted!");
+        } catch (error) {
+          console.error("Error removing document: ", error);
+        }
+      };
+
     return (
         <div className="use-case-traditional">
             <h1 style={{marginLeft:"200px"}}>Use Case</h1>
             <div className="Use-Case-Calculations" style={{width:"80%",marginLeft:"200px"}}>
-                <p>Use Case Point <strong>(UCP)</strong> = {(calculateUCP().toFixed(2)) === 0 ? "not yet calculated" : (calculateUCP().toFixed(2))}</p>
+                <p>Use Case Point <strong>(UCP)</strong> = {(calculateUCP()) === 0 ? "not yet calculated" : (calculateUCP())}</p>
                 {/* <p>Duration = {calculateDurationinHrs()} Hours</p>
                 <p>Duration = {calculateDurationinDays()} Days</p> */}
-                <p>Duration = {calculateDurationInMonths().toFixed(2)} Months</p>
+                <p>Duration = {calculateDurationInMonths()} Months</p>
                 <p>Effort = {calculateEffortinPersonMonths()} Person-Month</p>
                 <p>Cost = {calculateCost()} $</p>
+                <div>
+                <button className='btn btn-primary' onClick={save}>Save</button>
+        <button className='btn btn-secondary' style={{marginLeft:"10px"}} onClick={openModal}>History</button>
+
+                </div>
+               
             </div>
             <div style={{marginLeft:"200px"}}>
             <p>Enter No. of Persons</p>
@@ -411,6 +454,54 @@ function UseCase() {
                     </tr>
                 </tbody>
             </table>
+            {isModalOpen && (
+        <div className="modal fade show d-block" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog modal-lg" style={{ maxWidth: '80%' }}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLabel">History</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body" >
+                <table className="table table-bordered" style={{marginLeft:"0px"}}>
+                  <thead>
+                    <tr>
+                      <th>UCP</th>
+                      <th>Duration</th>
+                      <th>Effort</th>
+                      <th>Cost</th>
+                      <th>Staff</th>
+                     
+                      <th>UCP person-month</th>
+                      <th>Cost per UCP</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  
+{savedData.map((data, index) => (
+  <tr key={index}>
+    <td>{data.ucp}</td>
+    <td>{data.duration}</td>
+    <td>{data.effort}</td>
+    <td>{data.cost} $</td>
+    <td>{data.staff}</td>
+    <td>{typeof data.ucpPersonMonth === 'number' ? data.ucpPersonMonth.toFixed(2) : 'N/A'}</td>
+    <td>{typeof data.costPerUcp === 'number' ? data.costPerUcp.toFixed(1) : 'N/A'} $</td>
+    <td><button className='btn btn-danger' onClick={() => deleteRow(index)}>Delete</button></td>
+  </tr>
+))}
+
+                  </tbody>
+                </table>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={closeModal}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
             <div className='references' style={{marginLeft:"200px",marginBottom:"10px"}}>
                 <h3>References</h3>
                 <ul>

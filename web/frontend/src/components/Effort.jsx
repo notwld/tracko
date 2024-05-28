@@ -11,6 +11,8 @@ import '../components/EAF.css';
 import { width } from '@fortawesome/free-brands-svg-icons/fa42Group';
 import { addDoc, collection } from 'firebase/firestore';
 import { database } from '../config/firebase';
+import { onSnapshot, updateDoc, query ,deleteDoc, doc} from 'firebase/firestore';
+
 
 function Effort({ eaf, total, totalLOC }) {
     const [effort, setEffort] = useState(0.0);
@@ -113,18 +115,68 @@ function Effort({ eaf, total, totalLOC }) {
             </Popover.Body>
         </Popover>
     );
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [savedData, setSavedData] = useState([]);
+    // const save = () => {
+    //     const data = {
+    //         effort: calculatedEffort,
+    //         cost: Math.floor(calculatedEffort * costPerPersonMonth),
+    //         schedule: calculatedSchedule,
+    //         esloc: calculateEsloc(),
+    //     }
+    //     addDoc(collection(database, "cocomo2")).then(() => {
+    //         alert("Data Saved")
+    //     })
+    // }
     const save = () => {
         const data = {
-            effort: calculatedEffort,
-            cost: Math.floor(calculatedEffort * costPerPersonMonth),
-            schedule: calculatedSchedule,
-            esloc: calculateEsloc(),
-        }
-        addDoc(collection(database, "cocomo2")).then(() => {
-            alert("Data Saved")
-        })
+            effort: calculatedEffort.toFixed(2),
+            cost: (calculatedEffort * costPerPersonMonth).toFixed(2),
+            schedule: calculatedSchedule.toFixed(2),
+            esloc: calculateEsloc().toFixed(2),
+
+        };
+
+        addDoc(collection(database, "cocomo2"), data).then(() => {
+            alert("Data has been saved");
+        }).catch((error) => {
+            alert("Error adding document: ", error);
+        });
     }
+    const fetchSavedData = () => {
+        const q = query(collection(database, "cocomo2"));
+        onSnapshot(q, (querySnapshot) => {
+          const data = [];
+          querySnapshot.forEach((doc) => {
+            data.push({ id: doc.id, ...doc.data() }); // Include the document ID in the object
+          });
+          console.log("Retrieved data from Firestore:", data); // Log the retrieved data
+          setSavedData(data);
+        });
+      };
+      
+    const openModal = () => {
+        fetchSavedData();
+        setIsModalOpen(true);
+      };
+    
+      const closeModal = () => {
+        setIsModalOpen(false);
+      };
+      const deleteRow = async (index) => {
+        const docId = savedData[index].id; // Assuming each document in Firestore has a unique ID
+        const newData = [...savedData];
+        newData.splice(index, 1);
+        setSavedData(newData);
+      
+        try {
+          await deleteDoc(doc(database, "cocomo2", docId));
+          console.log("Document successfully deleted!");
+        } catch (error) {
+          console.error("Error removing document: ", error);
+        }
+      };
+
 
     return (
         <div className="container">
@@ -215,7 +267,54 @@ function Effort({ eaf, total, totalLOC }) {
                 }}>
                     Save
                 </button>
+                <button className='btn btn-secondary' style={{marginLeft:"10px"}} onClick={openModal}>History</button>
+
             </div>
+            {isModalOpen && (
+        <div className="modal fade show d-block" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog modal-lg" style={{ maxWidth: '80%' }}>
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLabel">History</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close" onClick={closeModal}></button>
+              </div>
+              <div className="modal-body">
+  <table className="table table-bordered" style={{ marginLeft: "0px" }}>
+    <thead>
+      <tr>
+      <th>Effort (person-month)</th>
+    
+        <th>Cost ($)</th>
+        <th>Schedule (Months)</th>
+        <th>ESLOC</th>
+       
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {savedData.map((data, index) => (
+        <tr key={index}>
+            <td>{data.effort}</td>
+            <td>{data.cost}</td>
+            <td>{data.schedule}</td>
+            <td>{data.esloc}</td>
+          
+          <td>
+            <button className="btn btn-danger" onClick={() => deleteRow(index)}>Delete</button>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={closeModal}>Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
             <div className='references' style={{ marginLeft: "45px", width: "1000px", marginBottom: "10px" }}>
                 <h3>References</h3>
                 <ul>

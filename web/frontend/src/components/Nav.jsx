@@ -2,13 +2,17 @@ import { Link } from "react-router-dom";
 import "../stylesheets/nav.css";
 import { useState, useEffect } from "react";
 import logo from "../assets/logo.png";
+import { useLocation } from "react-router-dom";
 
 export default function Nav() {
     const [user, setUser] = useState(null);
     const [userType, setUserType] = useState(null);
     const [token, setToken] = useState(null);
+    const location = useLocation();
+    const [showNav, setShowNav] = useState(true);
 
     useEffect(() => {
+        setShowNav(!(location.pathname === '/welcome'));
         const user = localStorage.getItem('user');
         if (user) {
             setUser(JSON.parse(user));
@@ -48,7 +52,7 @@ export default function Nav() {
 
     return (
         <>
-            {user && (
+            {user&&showNav && (
                 <nav className="navbar navbar-expand-lg">
                     <div className="container-fluid">
                         <Link className="navbar-brand" to={"/home"}>
